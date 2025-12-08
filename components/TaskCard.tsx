@@ -4,6 +4,7 @@ import { cn } from "@/lib/utils";
 import { View } from "react-native";
 import { Checkbox } from "./ui/checkbox";
 import { useState } from "react";
+import { useColorScheme } from "nativewind";
 
 interface TaskCardProps {
   title: string;
@@ -12,6 +13,10 @@ interface TaskCardProps {
 
 export default function TaskCard({ title, description }: TaskCardProps) {
   const [checked, setChecked] = useState(false);
+  const { colorScheme } = useColorScheme();
+  const boxBg = colorScheme === "dark" ? "bg-black" : "bg-white";
+  const indicatorColor = colorScheme === "dark" ? "bg-white" : "bg-black";
+  const iconColor = colorScheme === "dark" ? "text-black" : "text-white";
 
   return (
     <Button
@@ -19,13 +24,17 @@ export default function TaskCard({ title, description }: TaskCardProps) {
       className="flex-row w-full min-h-24 items-center gap-4 rounded-2xl border border-black/15 dark:border-white/15 bg-white dark:bg-neutral-900 px-4 py-4 shadow-md shadow-black/10 dark:shadow-black/30"
     >
       <Checkbox
-        className="w-7 h-7 rounded-full border-2 border-neutral-300 bg-white dark:bg-white"
-        checkedClassName="bg-white"
+        className={cn(
+          "w-7 h-7 rounded-full border-2 border-neutral-300",
+          boxBg,
+        )}
+        checkedClassName={boxBg}
         indicatorClassName={cn(
-          "rounded-full bg-black transition-all duration-200 ease-out",
+          "rounded-full transition-all duration-200 ease-out",
+          indicatorColor,
           checked ? "scale-90 opacity-100" : "scale-0 opacity-0",
         )}
-        iconClassName="text-white"
+        iconClassName={iconColor}
         checked={checked}
         onCheckedChange={setChecked}
       />

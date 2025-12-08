@@ -1,9 +1,10 @@
-import { Pressable, ScrollView, View } from "react-native";
+import { Pressable, ScrollView, TextInput, View } from "react-native";
 import { Button } from "@/components/ui/button";
 import { Text } from "@/components/ui/text";
 import Entypo from "@expo/vector-icons/Entypo";
 import TaskCard from "@/components/TaskCard";
 import { useColorScheme } from "nativewind";
+import { useMemo, useState } from "react";
 
 export default function Index() {
   const tasks = [
@@ -39,19 +40,23 @@ export default function Index() {
   const { colorScheme, setColorScheme } = useColorScheme();
   const toggleTheme = () =>
     setColorScheme(colorScheme === "dark" ? "light" : "dark");
+  const [query, setQuery] = useState("");
+
+  const filteredTasks = useMemo(() => {
+    const q = query.trim().toLowerCase();
+    if (!q) return tasks;
+    return tasks.filter(
+      (task) =>
+        task.title.toLowerCase().includes(q) ||
+        task.description.toLowerCase().includes(q),
+    );
+  }, [query, tasks]);
 
   return (
     <View className="flex-1 p-6 gap-4 bg-white dark:bg-black">
       <View className="h-8 flex-row items-center justify-between">
         <Text className="text-xl font-bold dark:text-white">My Tasks</Text>
         <View className="flex-row items-center gap-3">
-          <Pressable hitSlop={8} onPress={() => {}}>
-            <Entypo
-              name="magnifying-glass"
-              size={22}
-              color={colorScheme === "dark" ? "#ffffff" : "#000000"}
-            />
-          </Pressable>
           <Button
             variant="outline"
             size="sm"
@@ -65,13 +70,32 @@ export default function Index() {
         </View>
       </View>
 
+      <View className="flex-row items-center gap-3">
+        <View className="flex-row items-center flex-1 rounded-3xl border border-black/10 dark:border-white/20 bg-white dark:bg-neutral-900 px-4 h-12">
+          <Entypo
+            name="magnifying-glass"
+            size={18}
+            color={colorScheme === "dark" ? "#ffffff" : "#000000"}
+          />
+          <TextInput
+            value={query}
+            onChangeText={setQuery}
+            placeholder="Search tasks..."
+            placeholderTextColor={
+              colorScheme === "dark" ? "#9ca3af" : "#9ca3af"
+            }
+            className="flex-1 px-3 text-base text-black dark:text-white"
+          />
+        </View>
+      </View>
+
       <ScrollView
         className="flex-1"
         contentContainerClassName="gap-3 pb-24"
         alwaysBounceVertical
         showsVerticalScrollIndicator={false}
       >
-        {tasks.map((task) => (
+        {filteredTasks.map((task) => (
           <TaskCard
             key={task.id}
             title={task.title}
