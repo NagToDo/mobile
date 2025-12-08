@@ -51,7 +51,11 @@ export default function Index() {
         showsVerticalScrollIndicator={false}
       >
         {tasks.map((task) => (
-          <TaskCard key={task.id} title={task.title} description={task.description} />
+          <TaskCard
+            key={task.id}
+            title={task.title}
+            description={task.description}
+          />
         ))}
       </ScrollView>
       <Button className="border-2 border-gray-300 rounded-full absolute bottom-7 right-9 w-14 h-14 flex items-center justify-center p-0">
