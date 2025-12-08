@@ -181,7 +181,7 @@ export default function SignupScreen() {
   return (
     <ScrollView
       className="flex-1 bg-white dark:bg-black"
-      contentContainerClassName="flex-grow p-6 pb-12 pt-12 gap-10"
+      contentContainerClassName="flex-grow p-6 pb-12 pt-12 gap-8"
       showsVerticalScrollIndicator={false}
     >
       <View className="gap-3 items-center">
@@ -264,13 +264,13 @@ export default function SignupScreen() {
         </View>
       </View>
 
-      <View className="flex-row items-center justify-center gap-2 self-stretch">
-        <View className="flex-1 h-px bg-black/10 dark:bg-white/20" />
-        <Text className="text-xs text-black/50 dark:text-white/60">OR</Text>
-        <View className="flex-1 h-px bg-black/10 dark:bg-white/20" />
-      </View>
+      <View className="gap-3 self-stretch -mt-2">
+        <View className="flex-row items-center justify-center gap-2">
+          <View className="flex-1 h-px bg-black/10 dark:bg-white/20" />
+          <Text className="text-xs text-black/50 dark:text-white/60">OR</Text>
+          <View className="flex-1 h-px bg-black/10 dark:bg-white/20" />
+        </View>
 
-      <View className="gap-3 self-stretch">
         <Button
           variant="outline"
           className="h-12 rounded-xl border border-black/10 dark:border-white/20 bg-white dark:bg-neutral-900 flex-row items-center justify-center gap-3"
