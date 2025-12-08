@@ -1,12 +1,16 @@
-import { Pressable, ScrollView, TextInput, View } from "react-native";
+import { ScrollView, TextInput, View } from "react-native";
 import { Button } from "@/components/ui/button";
 import { Text } from "@/components/ui/text";
 import Entypo from "@expo/vector-icons/Entypo";
 import TaskCard from "@/components/TaskCard";
 import { useColorScheme } from "nativewind";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
+import { Redirect, useRouter } from "expo-router";
+import type { Session } from "@supabase/supabase-js";
+import supabase, { supabaseConfigured } from "@/api/client";
 
 export default function Index() {
+  const router = useRouter();
   const tasks = [
     { id: "1", title: "Task 1", description: "Description 1" },
     { id: "2", title: "Task 2", description: "Description 2" },
@@ -41,6 +45,42 @@ export default function Index() {
   const toggleTheme = () =>
     setColorScheme(colorScheme === "dark" ? "light" : "dark");
   const [query, setQuery] = useState("");
+  const [session, setSession] = useState<Session | null>(null);
+  const [sessionLoading, setSessionLoading] = useState(true);
+
+  useEffect(() => {
+    let isMounted = true;
+
+    if (!supabaseConfigured) {
+      setSessionLoading(false);
+      return () => {
+        isMounted = false;
+      };
+    }
+
+    supabase.auth
+      .getSession()
+      .then(({ data }) => {
+        if (!isMounted) return;
+        setSession(data.session ?? null);
+      })
+      .finally(() => {
+        if (!isMounted) return;
+        setSessionLoading(false);
+      });
+
+    const { data: subscription } = supabase.auth.onAuthStateChange(
+      (_event, nextSession) => {
+        if (!isMounted) return;
+        setSession(nextSession);
+      },
+    );
+
+    return () => {
+      isMounted = false;
+      subscription?.subscription.unsubscribe();
+    };
+  }, []);
 
   const filteredTasks = useMemo(() => {
     const q = query.trim().toLowerCase();
@@ -52,11 +92,23 @@ export default function Index() {
     );
   }, [query, tasks]);
 
+  if (supabaseConfigured && !sessionLoading && !session) {
+    return <Redirect href="/auth" />;
+  }
+
   return (
     <View className="flex-1 p-6 gap-4 bg-white dark:bg-black">
       <View className="h-8 flex-row items-center justify-between">
         <Text className="text-xl font-bold dark:text-white">My Tasks</Text>
         <View className="flex-row items-center gap-3">
+          <Button
+            variant="outline"
+            size="sm"
+            className="h-8 px-3 rounded-full border border-black/15 dark:border-white/20 bg-white dark:bg-neutral-900"
+            onPress={() => router.push("/auth")}
+          >
+            <Text className="text-xs font-semibold dark:text-white">Login</Text>
+          </Button>
           <Button
             variant="outline"
             size="sm"
