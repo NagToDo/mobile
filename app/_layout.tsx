@@ -19,7 +19,7 @@ function CustomTabBar({ navigation, state }: BottomTabBarProps) {
       <View className="relative flex-row items-center justify-between px-10 py-4">
         <Pressable
           className="absolute left-1/2 -top-6 h-14 w-14 rounded-full items-center justify-center bg-white shadow-lg border-2 border-black/40"
-          onPress={() => goTo("add")}
+          onPress={() => goTo("task/create")}
           hitSlop={8}
           style={{ opacity: isFocused("add") ? 1 : 0.65 }}
         >
@@ -38,7 +38,7 @@ function CustomTabBar({ navigation, state }: BottomTabBarProps) {
 
         <Pressable
           className="flex-1 items-center"
-          onPress={() => goTo("add")}
+          onPress={() => goTo("task/create")}
           hitSlop={8}
           style={{ opacity: isFocused("add") ? 1 : 0.5 }}
         >
@@ -61,7 +61,7 @@ export default function RootLayout() {
         tabBar={(props) => <CustomTabBar {...props} />}
       >
         <Tabs.Screen name="index" options={{ title: "Home" }} />
-        <Tabs.Screen name="add" options={{ title: "Add Task" }} />
+        <Tabs.Screen name="task/create" options={{ title: "Add Task" }} />
       </Tabs>
       <PortalHost />
     </>
