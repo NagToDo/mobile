@@ -58,9 +58,6 @@ export default function Index() {
           />
         ))}
       </ScrollView>
-      <Button className="border-2 border-gray-300 rounded-full absolute bottom-7 right-9 w-14 h-14 flex items-center justify-center p-0">
-        <Entypo name="plus" size={30} color="white" />
-      </Button>
     </View>
   );
 }
