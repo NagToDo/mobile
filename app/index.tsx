@@ -36,8 +36,8 @@ export default function Index() {
   ];
 
   return (
-    <View className="flex-1 p-6">
-      <View className="h-16 mb-4 flex-row items-center justify-between">
+    <View className="flex-1 p-6 gap-4">
+      <View className="h-8 flex-row items-center justify-between">
         <Text className="text-xl font-bold">My Tasks</Text>
         <Pressable hitSlop={8} onPress={() => {}}>
           <Entypo name="magnifying-glass" size={22} />
