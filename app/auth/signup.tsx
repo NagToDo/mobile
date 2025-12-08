@@ -208,7 +208,10 @@ export default function SignupScreen() {
             </Button>
             <Pressable onPress={() => router.push("/auth")}>
               <Text className="text-center text-sm text-black/60 dark:text-white/60">
-                Already have an account? Log in
+                Already have an account?{" "}
+                <Text className="font-semibold text-black dark:text-white">
+                  Log in
+                </Text>
               </Text>
             </Pressable>
           </View>

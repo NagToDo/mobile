@@ -189,7 +189,10 @@ export default function AuthScreen() {
             </Button>
             <Pressable onPress={() => router.push("/auth/signup" as const)}>
               <Text className="text-center text-sm text-black/60 dark:text-white/60">
-                Don't have an account? Sign up
+                Don't have an account?{" "}
+                <Text className="font-semibold text-black dark:text-white">
+                  Sign up
+                </Text>
               </Text>
             </Pressable>
           </View>
