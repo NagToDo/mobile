@@ -1,5 +1,5 @@
 import { View, Pressable } from "react-native";
-import { Tabs } from "expo-router";
+import { Tabs, usePathname } from "expo-router";
 import { BottomTabBarProps } from "@react-navigation/bottom-tabs";
 import Entypo from "@expo/vector-icons/Entypo";
 import { PortalHost } from "@rn-primitives/portal";
@@ -9,6 +9,13 @@ import { useColorScheme } from "nativewind";
 
 function CustomTabBar({ navigation, state }: BottomTabBarProps) {
   const { colorScheme } = useColorScheme();
+  const pathname = usePathname();
+
+  const hideTabBar = pathname?.startsWith("/auth");
+
+  if (hideTabBar) {
+    return null;
+  }
 
   const goTo = (routeName: string) => {
     navigation.navigate(routeName);

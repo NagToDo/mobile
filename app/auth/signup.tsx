@@ -17,12 +17,13 @@ import supabase, { supabaseConfigured } from "@/api/client";
 import { Button } from "@/components/ui/button";
 import { Text } from "@/components/ui/text";
 
-export default function AuthScreen() {
+export default function SignupScreen() {
   const router = useRouter();
   const { colorScheme } = useColorScheme();
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const [googleLoading, setGoogleLoading] = useState(false);
   const [status, setStatus] = useState<string | null>(null);
@@ -66,7 +67,7 @@ export default function AuthScreen() {
     };
   }, []);
 
-  const handleEmailAuth = async () => {
+  const handleEmailSignup = async () => {
     if (!supabaseConfigured) {
       setError(
         "Supabase credentials are not configured. Add EXPO_PUBLIC_API_URL and EXPO_PUBLIC_API_KEY.",
@@ -82,16 +83,20 @@ export default function AuthScreen() {
       return;
     }
 
+    if (password !== confirmPassword) {
+      setError("Passwords do not match.");
+      return;
+    }
+
     setLoading(true);
 
     try {
-      const { error: signInError } = await supabase.auth.signInWithPassword({
+      const { error: signUpError } = await supabase.auth.signUp({
         email,
         password,
       });
-      if (signInError) throw signInError;
-      setStatus("Signed in! Redirecting...");
-      router.replace("/");
+      if (signUpError) throw signUpError;
+      setStatus("Account created. Check your email to confirm.");
     } catch (authError) {
       const message =
         authError instanceof Error
@@ -181,10 +186,10 @@ export default function AuthScreen() {
     >
       <View className="gap-3 items-center">
         <Text className="text-4xl font-extrabold text-center dark:text-white">
-          Welcome back
+          Create your account
         </Text>
         <Text className="text-base text-center text-black/60 dark:text-white/60">
-          Sign in to keep track of your tasks across devices.
+          Sign up to sync your tasks and stay organized.
         </Text>
       </View>
 
@@ -221,9 +226,23 @@ export default function AuthScreen() {
           </View>
 
           <View className="gap-2">
+            <Text className="text-sm font-semibold text-black dark:text-white">
+              Confirm password
+            </Text>
+            <TextInput
+              value={confirmPassword}
+              onChangeText={setConfirmPassword}
+              placeholder="Repeat password"
+              placeholderTextColor={placeholderColor}
+              className="w-full rounded-xl border border-black/10 dark:border-white/15 bg-white dark:bg-neutral-900 px-4 py-3 text-base dark:text-white"
+              secureTextEntry
+            />
+          </View>
+
+          <View className="gap-2">
             <Button
               className="h-12 rounded-xl bg-black dark:bg-white"
-              onPress={handleEmailAuth}
+              onPress={handleEmailSignup}
               disabled={loading}
             >
               {loading ? (
@@ -232,13 +251,13 @@ export default function AuthScreen() {
                 />
               ) : (
                 <Text className="text-base font-semibold text-white dark:text-black">
-                  Login with email
+                  Create account
                 </Text>
               )}
             </Button>
-            <Pressable onPress={() => router.push("/auth/signup" as const)}>
+            <Pressable onPress={() => router.push("/auth")}>
               <Text className="text-center text-sm text-black/60 dark:text-white/60">
-                Don't have an account? Sign up
+                Already have an account? Log in
               </Text>
             </Pressable>
           </View>

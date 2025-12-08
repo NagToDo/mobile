@@ -3,18 +3,14 @@ import { createClient } from "@supabase/supabase-js";
 const supabaseUrl = process.env.EXPO_PUBLIC_API_URL;
 const supabaseKey = process.env.EXPO_PUBLIC_API_KEY;
 
-export const supabaseConfigured = Boolean(supabaseUrl && supabaseKey);
-
-if (!supabaseConfigured) {
-  // Avoid crashing the app if env vars are missing; warn instead.
-  console.warn(
-    "Supabase env vars are not set. Auth will be disabled until EXPO_PUBLIC_API_URL and EXPO_PUBLIC_API_KEY are provided.",
+if (!supabaseUrl || !supabaseKey) {
+  throw new Error(
+    "Supabase configuration missing: Both EXPO_PUBLIC_API_URL and EXPO_PUBLIC_API_KEY environment variables must be set. Make sure you have added these variables to your environment.",
   );
 }
 
-const supabase = createClient(
-  supabaseUrl || "https://example.supabase.co",
-  supabaseKey || "public-anon-key",
-);
+export const supabaseConfigured = true;
+
+const supabase = createClient(supabaseUrl, supabaseKey);
 
 export default supabase;
