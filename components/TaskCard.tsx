@@ -30,7 +30,7 @@ export default function TaskCard({ title, description }: TaskCardProps) {
         <Text className="text-lg font-bold">{title}</Text>
         <Text className="opacity-80">{description}</Text>
       </View>
-      <View className="rounded-full w-4 h-4 bg-red-500" />
+      {/* <View className="rounded-full w-4 h-4 bg-red-500" /> */}
     </Button>
   );
 }

@@ -1,18 +1,60 @@
-import { useColorScheme, View } from "react-native";
+import { Pressable, ScrollView, View } from "react-native";
 import { Button } from "@/components/ui/button";
 import { Text } from "@/components/ui/text";
 import Entypo from "@expo/vector-icons/Entypo";
 import TaskCard from "@/components/TaskCard";
 
 export default function Index() {
-  return (
-    <View className="p-6 flex-1 items-center justify-center">
-      <TaskCard title="Task 1" description="Description 1" />
-      <TaskCard title="Task 2" description="Description 2" />
-      <TaskCard title="Task 3" description="Description 3" />
+  const tasks = [
+    { id: "1", title: "Task 1", description: "Description 1" },
+    { id: "2", title: "Task 2", description: "Description 2" },
+    { id: "3", title: "Task 3", description: "Description 3" },
+    { id: "4", title: "Task 4", description: "Description 4" },
+    { id: "5", title: "Task 5", description: "Description 5" },
+    { id: "6", title: "Task 6", description: "Description 6" },
+    { id: "7", title: "Task 7", description: "Description 7" },
+    { id: "8", title: "Task 8", description: "Description 8" },
+    { id: "9", title: "Task 9", description: "Description 9" },
+    { id: "10", title: "Task 10", description: "Description 10" },
+    { id: "11", title: "Task 11", description: "Description 11" },
+    { id: "12", title: "Task 12", description: "Description 12" },
+    { id: "13", title: "Task 13", description: "Description 13" },
+    { id: "14", title: "Task 14", description: "Description 14" },
+    { id: "15", title: "Task 15", description: "Description 15" },
+    { id: "16", title: "Task 16", description: "Description 16" },
+    { id: "17", title: "Task 17", description: "Description 17" },
+    { id: "18", title: "Task 18", description: "Description 18" },
+    { id: "19", title: "Task 19", description: "Description 19" },
+    { id: "20", title: "Task 20", description: "Description 20" },
+    { id: "21", title: "Task 21", description: "Description 21" },
+    { id: "22", title: "Task 22", description: "Description 22" },
+    { id: "23", title: "Task 23", description: "Description 23" },
+    { id: "24", title: "Task 24", description: "Description 24" },
+    { id: "25", title: "Task 25", description: "Description 25" },
+    { id: "26", title: "Task 26", description: "Description 26" },
+    { id: "27", title: "Task 27", description: "Description 27" },
+  ];
 
-      <Text className="mt-4">Edit app/index.tsx to edit this screen.</Text>
-      <Button className="absolute bottom-6 right-6 w-14 h-14 flex items-center justify-center p-0">
+  return (
+    <View className="flex-1 p-6">
+      <View className="h-16 mb-4 flex-row items-center justify-between">
+        <Text className="text-xl font-bold">My Tasks</Text>
+        <Pressable hitSlop={8} onPress={() => {}}>
+          <Entypo name="magnifying-glass" size={22} />
+        </Pressable>
+      </View>
+
+      <ScrollView
+        className="flex-1"
+        contentContainerClassName="gap-3 pb-24"
+        alwaysBounceVertical
+        showsVerticalScrollIndicator={false}
+      >
+        {tasks.map((task) => (
+          <TaskCard key={task.id} title={task.title} description={task.description} />
+        ))}
+      </ScrollView>
+      <Button className="border-2 border-gray-300 rounded-full absolute bottom-7 right-9 w-14 h-14 flex items-center justify-center p-0">
         <Entypo name="plus" size={30} color="white" />
       </Button>
     </View>
