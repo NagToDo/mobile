@@ -16,10 +16,10 @@ export default function TaskCard({ title, description }: TaskCardProps) {
   return (
     <Button
       variant="outline"
-      className="flex-row w-full min-h-24 items-center gap-4 rounded-2xl border border-black/15 bg-white px-4 py-4 shadow-md shadow-black/10"
+      className="flex-row w-full min-h-24 items-center gap-4 rounded-2xl border border-black/15 dark:border-white/15 bg-white dark:bg-neutral-900 px-4 py-4 shadow-md shadow-black/10 dark:shadow-black/30"
     >
       <Checkbox
-        className="w-7 h-7 rounded-full border-2 border-neutral-300 bg-white"
+        className="w-7 h-7 rounded-full border-2 border-neutral-300 bg-white dark:bg-white"
         checkedClassName="bg-white"
         indicatorClassName={cn(
           "rounded-full bg-black transition-all duration-200 ease-out",
@@ -30,8 +30,12 @@ export default function TaskCard({ title, description }: TaskCardProps) {
         onCheckedChange={setChecked}
       />
       <View className="flex-col justify-start flex-1">
-        <Text className="text-lg font-semibold text-black">{title}</Text>
-        <Text className="text-sm text-black/70 mt-1">{description}</Text>
+        <Text className="text-lg font-semibold text-black dark:text-white">
+          {title}
+        </Text>
+        <Text className="text-sm text-black/70 dark:text-white/70 mt-1">
+          {description}
+        </Text>
       </View>
       {/* <View className="rounded-full w-4 h-4 bg-red-500" /> */}
     </Button>

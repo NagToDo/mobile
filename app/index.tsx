@@ -3,6 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Text } from "@/components/ui/text";
 import Entypo from "@expo/vector-icons/Entypo";
 import TaskCard from "@/components/TaskCard";
+import { useColorScheme } from "nativewind";
 
 export default function Index() {
   const tasks = [
@@ -35,13 +36,33 @@ export default function Index() {
     { id: "27", title: "Task 27", description: "Description 27" },
   ];
 
+  const { colorScheme, setColorScheme } = useColorScheme();
+  const toggleTheme = () =>
+    setColorScheme(colorScheme === "dark" ? "light" : "dark");
+
   return (
-    <View className="flex-1 p-6 gap-4">
+    <View className="flex-1 p-6 gap-4 bg-white dark:bg-black">
       <View className="h-8 flex-row items-center justify-between">
-        <Text className="text-xl font-bold">My Tasks</Text>
-        <Pressable hitSlop={8} onPress={() => {}}>
-          <Entypo name="magnifying-glass" size={22} />
-        </Pressable>
+        <Text className="text-xl font-bold dark:text-white">My Tasks</Text>
+        <View className="flex-row items-center gap-3">
+          <Pressable hitSlop={8} onPress={() => {}}>
+            <Entypo
+              name="magnifying-glass"
+              size={22}
+              color={colorScheme === "dark" ? "#ffffff" : "#000000"}
+            />
+          </Pressable>
+          <Button
+            variant="outline"
+            size="sm"
+            className="h-8 px-3 rounded-full border border-black/15 dark:border-white/20 bg-white dark:bg-neutral-900"
+            onPress={toggleTheme}
+          >
+            <Text className="text-xs font-semibold dark:text-white">
+              {colorScheme === "dark" ? "Light" : "Dark"} mode
+            </Text>
+          </Button>
+        </View>
       </View>
 
       <ScrollView

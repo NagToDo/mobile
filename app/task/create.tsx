@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Text } from "@/components/ui/text";
 import { cn } from "@/lib/utils";
 import Feather from "@expo/vector-icons/Feather";
+import { useColorScheme } from "nativewind";
 
 const MAX_CATEGORIES = 3;
 
@@ -129,6 +130,9 @@ const iconOptions = [
 ];
 
 export default function CreateTask() {
+  const { colorScheme } = useColorScheme();
+  const iconColor = colorScheme === "dark" ? "#fff" : "#000";
+
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [categories, setCategories] = useState<
@@ -162,30 +166,34 @@ export default function CreateTask() {
 
   return (
     <ScrollView
-      className="flex-1 bg-white"
+      className="flex-1 bg-white dark:bg-black"
       contentContainerClassName="p-6 pb-16 gap-8"
       showsVerticalScrollIndicator={false}
     >
       <View className="gap-2">
-        <Text className="text-2xl font-bold">Add a new task</Text>
-        <Text className="text-sm text-black/50">
+        <Text className="text-2xl font-bold dark:text-white">
+          Add a new task
+        </Text>
+        <Text className="text-sm text-black/50 dark:text-white/60">
           Give it a title, context, and how you want to be notified.
         </Text>
       </View>
 
       <View className="gap-3">
-        <Text className="text-lg font-semibold">Title</Text>
+        <Text className="text-lg font-semibold dark:text-white">Title</Text>
         <TextInput
           value={title}
           onChangeText={setTitle}
           placeholder="e.g. Morning workout"
           placeholderTextColor="#9ca3af"
-          className="w-full rounded-xl border border-black/10 bg-white px-4 py-3 text-base"
+          className="w-full rounded-xl border border-black/10 dark:border-white/15 bg-white dark:bg-neutral-900 px-4 py-3 text-base dark:text-white"
         />
       </View>
 
       <View className="gap-3">
-        <Text className="text-lg font-semibold">Description</Text>
+        <Text className="text-lg font-semibold dark:text-white">
+          Description
+        </Text>
         <TextInput
           value={description}
           onChangeText={setDescription}
@@ -194,32 +202,40 @@ export default function CreateTask() {
           textAlignVertical="top"
           placeholder="Add a note or steps you want to remember"
           placeholderTextColor="#9ca3af"
-          className="w-full min-h-28 rounded-xl border border-black/10 bg-white px-4 py-3 text-base"
+          className="w-full min-h-28 rounded-xl border border-black/10 dark:border-white/15 bg-white dark:bg-neutral-900 px-4 py-3 text-base dark:text-white"
         />
       </View>
 
       <View className="gap-3">
-        <Text className="text-lg font-semibold">Categories</Text>
+        <Text className="text-lg font-semibold dark:text-white">
+          Categories
+        </Text>
         {categories.length > 0 ? (
           <View className="flex-row flex-wrap gap-3">
             {categories.map((category, index) => (
               <View
                 key={`${category.name}-${index}`}
-                className="flex-row items-center gap-2 rounded-full border border-black/10 bg-white px-4 py-2"
+                className="flex-row items-center gap-2 rounded-full border border-black/10 dark:border-white/15 bg-white dark:bg-neutral-900 px-4 py-2"
               >
-                <Feather name={category.icon as any} size={18} />
-                <Text className="text-sm font-medium">{category.name}</Text>
+                <Feather
+                  name={category.icon as any}
+                  size={18}
+                  color={iconColor}
+                />
+                <Text className="text-sm font-medium dark:text-white">
+                  {category.name}
+                </Text>
               </View>
             ))}
           </View>
         ) : (
-          <Text className="text-sm text-black/50">
+          <Text className="text-sm text-black/50 dark:text-white/60">
             No categories yet. Add one below.
           </Text>
         )}
         <Button
           variant="outline"
-          className="h-12 w-full rounded-xl border border-black/10 justify-center"
+          className="h-12 w-full rounded-xl border border-black/10 dark:border-white/15 justify-center bg-white dark:bg-neutral-900"
           disabled={categories.length >= MAX_CATEGORIES}
           onPress={() => {
             if (categories.length >= MAX_CATEGORIES) return;
@@ -236,28 +252,30 @@ export default function CreateTask() {
               : "Add"}
           </Text>
         </Button>
-        <Text className="text-xs text-black/50">
+        <Text className="text-xs text-black/50 dark:text-white/60">
           You can add up to {MAX_CATEGORIES} categories.
         </Text>
       </View>
 
       <View className="gap-3">
-        <Text className="text-lg font-semibold">Alarm</Text>
+        <Text className="text-lg font-semibold dark:text-white">Alarm</Text>
         <Button
           variant="outline"
-          className="h-12 w-full rounded-xl border border-black/10 flex-row items-center justify-center gap-2"
+          className="h-12 w-full rounded-xl border border-black/10 dark:border-white/15 flex-row items-center justify-center gap-2 bg-white dark:bg-neutral-900"
           onPress={openAlarmModal}
         >
-          <Feather name="clock" size={18} />
-          <Text className="text-sm font-semibold">{alarmFrequency}</Text>
+          <Feather name="clock" size={18} color={iconColor} />
+          <Text className="text-sm font-semibold dark:text-white">
+            {alarmFrequency}
+          </Text>
         </Button>
-        <Text className="text-xs text-black/50">
+        <Text className="text-xs text-black/50 dark:text-white/60">
           Choose how often to send the reminder.
         </Text>
       </View>
 
-      <Button className="h-12 rounded-xl shadow-md shadow-black/10">
-        <Text className="text-base font-semibold text-primary-foreground">
+      <Button className="h-12 rounded-xl shadow-md shadow-black/10 bg-primary dark:bg-primary">
+        <Text className="text-base font-semibold text-primary-foreground dark:text-black">
           Save task
         </Text>
       </Button>
@@ -269,17 +287,17 @@ export default function CreateTask() {
         onRequestClose={() => setEmojiPickerVisible(false)}
       >
         <View className="flex-1 justify-end bg-black/40">
-          <View className="bg-white rounded-t-3xl p-6 gap-4 h-[70%] max-h-[70%]">
+          <View className="bg-white dark:bg-neutral-950 rounded-t-3xl p-6 gap-4 h-[70%] max-h-[70%] border border-black/10 dark:border-white/20">
             <View className="h-1 w-12 rounded-full bg-black/10 self-center" />
             <View className="flex-row items-center justify-between">
-              <Text className="text-lg font-semibold">
+              <Text className="text-lg font-semibold dark:text-white">
                 {categoryStep === 1 ? "Name the category" : "Pick an icon"}
               </Text>
               <Pressable
                 hitSlop={8}
                 onPress={() => setEmojiPickerVisible(false)}
               >
-                <Feather name="x" size={22} color="black" />
+                <Feather name="x" size={22} color={iconColor} />
               </Pressable>
             </View>
 
@@ -290,7 +308,7 @@ export default function CreateTask() {
                   onChangeText={setDraftCategoryName}
                   placeholder="e.g. Morning Routine"
                   placeholderTextColor="#9ca3af"
-                  className="w-full rounded-xl border border-black/10 bg-white px-4 py-3 text-base"
+                  className="w-full rounded-xl border border-black/10 dark:border-white/15 bg-white dark:bg-neutral-900 px-4 py-3 text-base dark:text-white"
                   autoFocus
                 />
                 <Button
@@ -308,7 +326,7 @@ export default function CreateTask() {
             {categoryStep === 2 && (
               <>
                 <View className="flex-row items-center justify-between">
-                  <Text className="text-sm text-black/60">
+                  <Text className="text-sm text-black/60 dark:text-white/60">
                     Category: {draftCategoryName || "Unnamed"}
                   </Text>
                   <Pressable
@@ -329,7 +347,7 @@ export default function CreateTask() {
                   onChangeText={setEmojiSearch}
                   placeholder="Search icons..."
                   placeholderTextColor="#9ca3af"
-                  className="w-full rounded-xl border border-black/10 bg-white px-4 py-3 text-base"
+                  className="w-full rounded-xl border border-black/10 dark:border-white/15 bg-white dark:bg-neutral-900 px-4 py-3 text-base dark:text-white"
                 />
 
                 <ScrollView
@@ -341,7 +359,7 @@ export default function CreateTask() {
                       <Pressable
                         key={icon.label}
                         className={cn(
-                          "w-[28%] aspect-square items-center justify-center rounded-2xl border border-black/10 bg-white px-3 py-4",
+                          "w-[28%] aspect-square items-center justify-center rounded-2xl border border-black/10 dark:border-white/15 bg-white dark:bg-neutral-900 px-3 py-4",
                           draftIcon === icon.value &&
                             "border-primary bg-primary/10",
                         )}
@@ -350,8 +368,12 @@ export default function CreateTask() {
                         }}
                         hitSlop={6}
                       >
-                        <Feather name={icon.value as any} size={26} />
-                        <Text className="text-[11px] text-black/70 mt-2 text-center">
+                        <Feather
+                          name={icon.value as any}
+                          size={26}
+                          color={iconColor}
+                        />
+                        <Text className="text-[11px] text-black/70 dark:text-white/70 mt-2 text-center">
                           {icon.label}
                         </Text>
                       </Pressable>
@@ -359,7 +381,7 @@ export default function CreateTask() {
                   )}
                   {emojiSearch.trim() && filteredIcons.length === 0 && (
                     <View className="w-full items-center py-8">
-                      <Text className="text-sm text-black/50">
+                      <Text className="text-sm text-black/50 dark:text-white/60">
                         No matches found
                       </Text>
                     </View>
@@ -367,7 +389,7 @@ export default function CreateTask() {
                 </ScrollView>
 
                 <Button
-                  className="h-12 w-full rounded-xl justify-center"
+                  className="h-12 w-full rounded-xl justify-center bg-primary dark:bg-primary"
                   disabled={!draftCategoryName.trim() || !draftIcon}
                   onPress={() => {
                     if (
@@ -387,7 +409,7 @@ export default function CreateTask() {
                     setCategoryStep(1);
                   }}
                 >
-                  <Text className="text-sm font-semibold text-primary-foreground">
+                  <Text className="text-sm font-semibold text-white">
                     Finish
                   </Text>
                 </Button>
@@ -404,15 +426,17 @@ export default function CreateTask() {
         onRequestClose={closeAlarmModal}
       >
         <View className="flex-1 justify-end bg-black/40">
-          <View className="bg-white rounded-t-3xl p-6 gap-4 h-1/2 max-h-[60%]">
+          <View className="bg-white dark:bg-neutral-950 rounded-t-3xl p-6 gap-4 h-1/2 max-h-[60%] border border-black/10 dark:border-white/20">
             <View className="h-1 w-12 rounded-full bg-black/10 self-center" />
             <View className="flex-row items-center justify-between">
-              <Text className="text-lg font-semibold">Alarm frequency</Text>
+              <Text className="text-lg font-semibold dark:text-white">
+                Alarm frequency
+              </Text>
               <Pressable hitSlop={8} onPress={closeAlarmModal}>
-                <Feather name="x" size={22} color="black" />
+                <Feather name="x" size={22} color={iconColor} />
               </Pressable>
             </View>
-            <Text className="text-sm text-black/60">
+            <Text className="text-sm text-black/60 dark:text-white/60">
               Choose how often to send push notifications.
             </Text>
             <ScrollView
@@ -434,7 +458,7 @@ export default function CreateTask() {
                       "h-12 flex-row items-center justify-between rounded-xl border px-4",
                       selected
                         ? "border-primary bg-primary/10"
-                        : "border-black/10 bg-white",
+                        : "border-black/10 dark:border-white/15 bg-white dark:bg-neutral-900",
                     )}
                     onPress={() => {
                       setAlarmFrequency(option);
@@ -442,8 +466,10 @@ export default function CreateTask() {
                     }}
                   >
                     <View className="flex-row items-center gap-2">
-                      <Feather name="clock" size={18} />
-                      <Text className="text-sm font-semibold">{option}</Text>
+                      <Feather name="clock" size={18} color={iconColor} />
+                      <Text className="text-sm font-semibold dark:text-white">
+                        {option}
+                      </Text>
                     </View>
                     {selected && <Feather name="check" size={18} />}
                   </Pressable>
