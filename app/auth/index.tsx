@@ -13,7 +13,7 @@ import AntDesign from "@expo/vector-icons/AntDesign";
 import Entypo from "@expo/vector-icons/Entypo";
 import type { Session } from "@supabase/supabase-js";
 
-import supabase, { supabaseConfigured } from "@/api/client";
+import supabase from "@/api/client";
 import { Button } from "@/components/ui/button";
 import { Text } from "@/components/ui/text";
 
@@ -34,13 +34,6 @@ export default function AuthScreen() {
 
   useEffect(() => {
     let isMounted = true;
-
-    if (!supabaseConfigured) {
-      setSessionLoading(false);
-      return () => {
-        isMounted = false;
-      };
-    }
 
     supabase.auth
       .getSession()
@@ -67,13 +60,6 @@ export default function AuthScreen() {
   }, []);
 
   const handleEmailAuth = async () => {
-    if (!supabaseConfigured) {
-      setError(
-        "Supabase credentials are not configured. Add EXPO_PUBLIC_API_URL and EXPO_PUBLIC_API_KEY.",
-      );
-      return;
-    }
-
     setError(null);
     setStatus(null);
 
@@ -104,13 +90,6 @@ export default function AuthScreen() {
   };
 
   const handleGoogleAuth = async () => {
-    if (!supabaseConfigured) {
-      setError(
-        "Supabase credentials are not configured. Add EXPO_PUBLIC_API_URL and EXPO_PUBLIC_API_KEY.",
-      );
-      return;
-    }
-
     setError(null);
     setStatus(null);
     setGoogleLoading(true);
@@ -143,34 +122,6 @@ export default function AuthScreen() {
 
   if (!sessionLoading && session) {
     return <Redirect href="/" />;
-  }
-
-  if (!supabaseConfigured) {
-    return (
-      <ScrollView
-        className="flex-1 bg-white dark:bg-black"
-        contentContainerClassName="p-6 pb-12 gap-8"
-        showsVerticalScrollIndicator={false}
-      >
-        <View className="gap-3">
-          <Text className="text-3xl font-bold dark:text-white">
-            Auth is not configured
-          </Text>
-          <Text className="text-base text-black/60 dark:text-white/60">
-            Set EXPO_PUBLIC_API_URL and EXPO_PUBLIC_API_KEY to enable Supabase
-            authentication.
-          </Text>
-        </View>
-        <Button
-          className="h-12 rounded-xl bg-black dark:bg-white"
-          onPress={() => router.replace("/")}
-        >
-          <Text className="text-base font-semibold text-white dark:text-black">
-            Go back to tasks
-          </Text>
-        </Button>
-      </ScrollView>
-    );
   }
 
   return (

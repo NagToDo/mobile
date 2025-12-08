@@ -7,7 +7,7 @@ import { useColorScheme } from "nativewind";
 import { useEffect, useMemo, useState } from "react";
 import { Redirect, useRouter } from "expo-router";
 import type { Session } from "@supabase/supabase-js";
-import supabase, { supabaseConfigured } from "@/api/client";
+import supabase from "@/api/client";
 
 export default function Index() {
   const router = useRouter();
@@ -51,13 +51,6 @@ export default function Index() {
   useEffect(() => {
     let isMounted = true;
 
-    if (!supabaseConfigured) {
-      setSessionLoading(false);
-      return () => {
-        isMounted = false;
-      };
-    }
-
     supabase.auth
       .getSession()
       .then(({ data }) => {
@@ -92,7 +85,7 @@ export default function Index() {
     );
   }, [query, tasks]);
 
-  if (supabaseConfigured && !sessionLoading && !session) {
+  if (!sessionLoading && !session) {
     return <Redirect href="/auth" />;
   }
 

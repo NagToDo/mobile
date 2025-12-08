@@ -9,8 +9,6 @@ if (!supabaseUrl || !supabaseKey) {
   );
 }
 
-export const supabaseConfigured = true;
-
 const supabase = createClient(supabaseUrl, supabaseKey);
 
 export default supabase;
