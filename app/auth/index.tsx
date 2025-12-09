@@ -10,8 +10,8 @@ import { Redirect, useRouter } from "expo-router";
 import * as Linking from "expo-linking";
 import { useColorScheme } from "nativewind";
 import AntDesign from "@expo/vector-icons/AntDesign";
-import Entypo from "@expo/vector-icons/Entypo";
 import type { Session } from "@supabase/supabase-js";
+import ToastManager, { Toast } from "toastify-react-native";
 
 import supabase from "@/api/client";
 import { Button } from "@/components/ui/button";
@@ -21,12 +21,10 @@ export default function AuthScreen() {
   const router = useRouter();
   const { colorScheme } = useColorScheme();
 
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
+  const [email, setEmail] = useState("cabibbonehuen@gmail.com");
+  const [password, setPassword] = useState("AAAAAAAA");
   const [loading, setLoading] = useState(false);
   const [googleLoading, setGoogleLoading] = useState(false);
-  const [status, setStatus] = useState<string | null>(null);
-  const [error, setError] = useState<string | null>(null);
   const [session, setSession] = useState<Session | null>(null);
   const [sessionLoading, setSessionLoading] = useState(true);
 
@@ -60,11 +58,14 @@ export default function AuthScreen() {
   }, []);
 
   const handleEmailAuth = async () => {
-    setError(null);
-    setStatus(null);
-
     if (!email || !password) {
-      setError("Email and password are required.");
+      Toast.error(
+        "Email and password are required.",
+        "top",
+        undefined,
+        undefined,
+        true,
+      );
       return;
     }
 
@@ -76,22 +77,26 @@ export default function AuthScreen() {
         password,
       });
       if (signInError) throw signInError;
-      setStatus("Signed in! Redirecting...");
+      Toast.success(
+        "Signed in! Redirecting...",
+        "top",
+        undefined,
+        undefined,
+        true,
+      );
       router.replace("/");
     } catch (authError) {
       const message =
         authError instanceof Error
           ? authError.message
           : "Something went wrong. Please try again.";
-      setError(message);
+      Toast.error(message, "top", undefined, undefined, true);
     } finally {
       setLoading(false);
     }
   };
 
   const handleGoogleAuth = async () => {
-    setError(null);
-    setStatus(null);
     setGoogleLoading(true);
 
     try {
@@ -105,16 +110,20 @@ export default function AuthScreen() {
 
       if (data?.url) {
         await Linking.openURL(data.url);
-        setStatus("Opening Google sign-in...");
-      } else {
-        setStatus("Continue in the browser to finish Google sign-in.");
+        Toast.success(
+          "Opening Google sign-in...",
+          "top",
+          undefined,
+          undefined,
+          true,
+        );
       }
     } catch (authError) {
       const message =
         authError instanceof Error
           ? authError.message
           : "Google sign-in failed. Please try again.";
-      setError(message);
+      Toast.error(message, "top", undefined, undefined, true);
     } finally {
       setGoogleLoading(false);
     }
@@ -130,6 +139,7 @@ export default function AuthScreen() {
       contentContainerClassName="flex-grow p-6 pb-12 pt-12 gap-8"
       showsVerticalScrollIndicator={false}
     >
+      <ToastManager position="top" theme="light" />
       <View className="gap-3 items-center">
         <Text className="text-4xl font-extrabold text-center dark:text-white">
           Welcome back
@@ -228,33 +238,6 @@ export default function AuthScreen() {
           )}
         </Button>
       </View>
-
-      {(error || status) && (
-        <View
-          className={`rounded-xl border px-4 py-3 ${
-            error
-              ? "border-red-200 bg-red-50 dark:border-red-400/40 dark:bg-red-900/40"
-              : "border-green-200 bg-green-50 dark:border-green-400/40 dark:bg-green-900/30"
-          }`}
-        >
-          <View className="flex-row items-start gap-3">
-            <Entypo
-              name={error ? "cross" : "check"}
-              size={18}
-              color={error ? "#ef4444" : "#22c55e"}
-            />
-            <Text
-              className={`flex-1 text-sm ${
-                error
-                  ? "text-red-600 dark:text-red-200"
-                  : "text-green-700 dark:text-green-100"
-              }`}
-            >
-              {error ?? status}
-            </Text>
-          </View>
-        </View>
-      )}
     </ScrollView>
   );
 }
