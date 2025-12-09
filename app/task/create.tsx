@@ -1,10 +1,19 @@
 import { useState } from "react";
-import { Modal, Pressable, ScrollView, TextInput, View } from "react-native";
+import {
+  Alert,
+  Modal,
+  Pressable,
+  ScrollView,
+  TextInput,
+  View,
+} from "react-native";
 import { Button } from "@/components/ui/button";
 import { Text } from "@/components/ui/text";
 // import { cn } from "@/lib/utils";
 import Feather from "@expo/vector-icons/Feather";
 import { useColorScheme } from "nativewind";
+import { createTask } from "@/api/tasks";
+import { useRouter } from "expo-router";
 
 // const MAX_CATEGORIES = 3;
 
@@ -132,6 +141,7 @@ import { useColorScheme } from "nativewind";
 export default function CreateTask() {
   const { colorScheme } = useColorScheme();
   const iconColor = colorScheme === "dark" ? "#fff" : "#000";
+  const router = useRouter();
 
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
@@ -141,12 +151,13 @@ export default function CreateTask() {
   const [notificationTime, setNotificationTime] = useState("Set time");
   const [notificationType, setNotificationType] = useState("Notification type");
   const [alarmModalVisible, setAlarmModalVisible] = useState(false);
-  const [alarmFrequency, setAlarmFrequency] = useState("Alarm");
+  const [alarmFrequency, setAlarmFrequency] = useState<number | null>(null);
   // const [emojiPickerVisible, setEmojiPickerVisible] = useState(false);
   // const [emojiSearch, setEmojiSearch] = useState("");
   // const [categoryStep, setCategoryStep] = useState<1 | 2>(1);
   // const [draftCategoryName, setDraftCategoryName] = useState("");
   // const [draftIcon, setDraftIcon] = useState<string | null>(null);
+  const [saving, setSaving] = useState(false);
 
   const handleNotificationTimePress = () => {
     setNotificationTime("Pick time (modal soon)");
@@ -157,6 +168,31 @@ export default function CreateTask() {
   };
   const openAlarmModal = () => setAlarmModalVisible(true);
   const closeAlarmModal = () => setAlarmModalVisible(false);
+
+  const handleSave = async () => {
+    const trimmedTitle = title.trim();
+    if (!trimmedTitle) {
+      Alert.alert("Title required", "Please add a title for your task.");
+      return;
+    }
+
+    setSaving(true);
+    try {
+      await createTask({
+        name: trimmedTitle,
+        description: description.trim() || undefined,
+        alarm_interval: alarmFrequency ?? null,
+      });
+      Alert.alert("Task created", "Your task was saved.");
+      router.replace("/");
+    } catch (err) {
+      const message =
+        err instanceof Error ? err.message : "Unable to create task.";
+      Alert.alert("Error", message);
+    } finally {
+      setSaving(false);
+    }
+  };
 
   // const filteredIcons = iconOptions.filter(
   //   (icon) =>
@@ -268,7 +304,9 @@ export default function CreateTask() {
         >
           <Feather name="clock" size={18} color={iconColor} />
           <Text className="text-sm font-semibold dark:text-white">
-            {alarmFrequency}
+            {alarmFrequency
+              ? `Every ${alarmFrequency} min`
+              : "Set alarm interval"}
           </Text>
         </Button>
         <Text className="text-xs text-black/50 dark:text-white/60">
@@ -447,13 +485,7 @@ export default function CreateTask() {
               className="flex-1"
               contentContainerClassName="gap-3 pb-4"
             >
-              {[
-                "Every 1 min",
-                "Every 2 min",
-                "Every 3 min",
-                "Every 4 min",
-                "Every 5 min",
-              ].map((option) => {
+              {[1, 2, 3, 4, 5].map((option) => {
                 const selected = alarmFrequency === option;
                 return (
                   <Pressable
@@ -471,7 +503,7 @@ export default function CreateTask() {
                     <View className="flex-row items-center gap-2">
                       <Feather name="clock" size={18} color={iconColor} />
                       <Text className="text-sm font-semibold dark:text-white">
-                        {option}
+                        Every {option} min
                       </Text>
                     </View>
                     {selected && <Feather name="check" size={18} />}
