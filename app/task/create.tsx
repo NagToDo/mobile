@@ -2,13 +2,13 @@ import { useState } from "react";
 import { Modal, Pressable, ScrollView, TextInput, View } from "react-native";
 import { Button } from "@/components/ui/button";
 import { Text } from "@/components/ui/text";
-import { cn } from "@/lib/utils";
+// import { cn } from "@/lib/utils";
 import Feather from "@expo/vector-icons/Feather";
 import { useColorScheme } from "nativewind";
 
-const MAX_CATEGORIES = 3;
+// const MAX_CATEGORIES = 3;
 
-const iconOptions = [
+/* const iconOptions = [
   { label: "smile", value: "smile" },
   { label: "heart", value: "heart" },
   { label: "star", value: "star" },
@@ -127,7 +127,7 @@ const iconOptions = [
   { label: "wifi", value: "wifi" },
   { label: "wind", value: "wind" },
   { label: "x-circle", value: "x-circle" },
-];
+]; */
 
 export default function CreateTask() {
   const { colorScheme } = useColorScheme();
@@ -135,18 +135,18 @@ export default function CreateTask() {
 
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
-  const [categories, setCategories] = useState<
-    { name: string; icon: string }[]
-  >([]);
+  // const [categories, setCategories] = useState<
+  //   { name: string; icon: string }[]
+  // >([]);
   const [notificationTime, setNotificationTime] = useState("Set time");
   const [notificationType, setNotificationType] = useState("Notification type");
   const [alarmModalVisible, setAlarmModalVisible] = useState(false);
   const [alarmFrequency, setAlarmFrequency] = useState("Alarm");
-  const [emojiPickerVisible, setEmojiPickerVisible] = useState(false);
-  const [emojiSearch, setEmojiSearch] = useState("");
-  const [categoryStep, setCategoryStep] = useState<1 | 2>(1);
-  const [draftCategoryName, setDraftCategoryName] = useState("");
-  const [draftIcon, setDraftIcon] = useState<string | null>(null);
+  // const [emojiPickerVisible, setEmojiPickerVisible] = useState(false);
+  // const [emojiSearch, setEmojiSearch] = useState("");
+  // const [categoryStep, setCategoryStep] = useState<1 | 2>(1);
+  // const [draftCategoryName, setDraftCategoryName] = useState("");
+  // const [draftIcon, setDraftIcon] = useState<string | null>(null);
 
   const handleNotificationTimePress = () => {
     setNotificationTime("Pick time (modal soon)");
@@ -158,11 +158,11 @@ export default function CreateTask() {
   const openAlarmModal = () => setAlarmModalVisible(true);
   const closeAlarmModal = () => setAlarmModalVisible(false);
 
-  const filteredIcons = iconOptions.filter(
-    (icon) =>
-      icon.label.toLowerCase().includes(emojiSearch.toLowerCase()) ||
-      icon.value.includes(emojiSearch),
-  );
+  // const filteredIcons = iconOptions.filter(
+  //   (icon) =>
+  //     icon.label.toLowerCase().includes(emojiSearch.toLowerCase()) ||
+  //     icon.value.includes(emojiSearch),
+  // );
 
   return (
     <ScrollView
@@ -206,6 +206,7 @@ export default function CreateTask() {
         />
       </View>
 
+      {/* Category UI temporarily disabled
       <View className="gap-3">
         <Text className="text-lg font-semibold dark:text-white">
           Categories
@@ -256,6 +257,7 @@ export default function CreateTask() {
           You can add up to {MAX_CATEGORIES} categories.
         </Text>
       </View>
+      */}
 
       <View className="gap-3">
         <Text className="text-lg font-semibold dark:text-white">Alarm</Text>
@@ -280,6 +282,7 @@ export default function CreateTask() {
         </Text>
       </Button>
 
+      {/* Category modal temporarily disabled
       <Modal
         animationType="slide"
         transparent
@@ -418,6 +421,7 @@ export default function CreateTask() {
           </View>
         </View>
       </Modal>
+      */}
 
       <Modal
         animationType="slide"
@@ -454,12 +458,11 @@ export default function CreateTask() {
                 return (
                   <Pressable
                     key={option}
-                    className={cn(
-                      "h-12 flex-row items-center justify-between rounded-xl border px-4",
+                    className={`h-12 flex-row items-center justify-between rounded-xl border px-4 ${
                       selected
                         ? "border-primary bg-primary/10"
-                        : "border-black/10 dark:border-white/15 bg-white dark:bg-neutral-900",
-                    )}
+                        : "border-black/10 dark:border-white/15 bg-white dark:bg-neutral-900"
+                    }`}
                     onPress={() => {
                       setAlarmFrequency(option);
                       closeAlarmModal();
