@@ -1,6 +1,7 @@
 import {
   ActivityIndicator,
   Alert,
+  RefreshControl,
   ScrollView,
   TextInput,
   View,
@@ -27,6 +28,7 @@ export default function Index() {
   const [tasks, setTasks] = useState<Task[]>([]);
   const [tasksLoading, setTasksLoading] = useState(true);
   const [tasksError, setTasksError] = useState<string | null>(null);
+  const [refreshing, setRefreshing] = useState(false);
   const handleLogout = async () => {
     try {
       await supabase.auth.signOut();
@@ -40,8 +42,10 @@ export default function Index() {
     }
   };
 
-  const fetchTasks = useCallback(async () => {
-    setTasksLoading(true);
+  const fetchTasks = useCallback(async (showLoading: boolean = true) => {
+    if (showLoading) {
+      setTasksLoading(true);
+    }
     setTasksError(null);
     try {
       const data = await getTasks();
@@ -51,7 +55,9 @@ export default function Index() {
         err instanceof Error ? err.message : "Unable to load tasks.";
       setTasksError(message);
     } finally {
-      setTasksLoading(false);
+      if (showLoading) {
+        setTasksLoading(false);
+      }
     }
   }, []);
 
@@ -97,6 +103,12 @@ export default function Index() {
     if (!session) return;
     fetchTasks();
   }, [fetchTasks, session, sessionLoading]);
+
+  const onRefresh = useCallback(async () => {
+    setRefreshing(true);
+    await fetchTasks(false);
+    setRefreshing(false);
+  }, [fetchTasks]);
 
   if (!sessionLoading && !session) {
     return <Redirect href="/auth" />;
@@ -154,6 +166,14 @@ export default function Index() {
         contentContainerClassName="gap-3 pb-24"
         alwaysBounceVertical
         showsVerticalScrollIndicator={false}
+        refreshControl={
+          <RefreshControl
+            refreshing={refreshing}
+            onRefresh={onRefresh}
+            tintColor={colorScheme === "dark" ? "#ffffff" : "#000000"}
+            colors={[colorScheme === "dark" ? "#ffffff" : "#000000"]}
+          />
+        }
       >
         {tasksLoading && (
           <View className="items-center justify-center py-12">
@@ -176,7 +196,7 @@ export default function Index() {
               variant="outline"
               size="sm"
               className="mt-3"
-              onPress={fetchTasks}
+              onPress={() => fetchTasks()}
             >
               <Text className="text-xs font-semibold">Retry</Text>
             </Button>
