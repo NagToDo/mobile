@@ -1,4 +1,10 @@
-import { ActivityIndicator, ScrollView, TextInput, View } from "react-native";
+import {
+  ActivityIndicator,
+  Alert,
+  ScrollView,
+  TextInput,
+  View,
+} from "react-native";
 import { Button } from "@/components/ui/button";
 import { Text } from "@/components/ui/text";
 import Entypo from "@expo/vector-icons/Entypo";
@@ -21,6 +27,18 @@ export default function Index() {
   const [tasks, setTasks] = useState<Task[]>([]);
   const [tasksLoading, setTasksLoading] = useState(true);
   const [tasksError, setTasksError] = useState<string | null>(null);
+  const handleLogout = async () => {
+    try {
+      await supabase.auth.signOut();
+      setSession(null);
+      setTasks([]);
+      router.replace("/auth");
+    } catch (err) {
+      const message =
+        err instanceof Error ? err.message : "Unable to log out right now.";
+      Alert.alert("Logout failed", message);
+    }
+  };
 
   const fetchTasks = useCallback(async () => {
     setTasksLoading(true);
@@ -93,9 +111,11 @@ export default function Index() {
             variant="outline"
             size="sm"
             className="h-8 px-3 rounded-full border border-black/15 dark:border-white/20 bg-white dark:bg-neutral-900"
-            onPress={() => router.push("/auth")}
+            onPress={handleLogout}
           >
-            <Text className="text-xs font-semibold dark:text-white">Login</Text>
+            <Text className="text-xs font-semibold dark:text-white">
+              Logout
+            </Text>
           </Button>
           <Button
             variant="outline"
