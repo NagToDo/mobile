@@ -1,5 +1,6 @@
 import { useState } from "react";
 import {
+  ActivityIndicator,
   Alert,
   Modal,
   Pressable,
@@ -14,6 +15,7 @@ import Feather from "@expo/vector-icons/Feather";
 import { useColorScheme } from "nativewind";
 import { createTask } from "@/api/tasks";
 import { useRouter } from "expo-router";
+import ToastManager, { Toast } from "toastify-react-native";
 
 // const MAX_CATEGORIES = 3;
 
@@ -158,21 +160,34 @@ export default function CreateTask() {
   // const [draftCategoryName, setDraftCategoryName] = useState("");
   // const [draftIcon, setDraftIcon] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
+  const [titleError, setTitleError] = useState(false);
+  const [alarmError, setAlarmError] = useState(false);
 
-  const handleNotificationTimePress = () => {
-    setNotificationTime("Pick time (modal soon)");
-  };
-
-  const handleNotificationTypePress = () => {
-    setNotificationType("Choose type (modal soon)");
-  };
   const openAlarmModal = () => setAlarmModalVisible(true);
   const closeAlarmModal = () => setAlarmModalVisible(false);
 
   const handleSave = async () => {
     const trimmedTitle = title.trim();
+    const missingFields: string[] = [];
+
     if (!trimmedTitle) {
-      Alert.alert("Title required", "Please add a title for your task.");
+      setTitleError(true);
+      missingFields.push("Title");
+    }
+
+    if (alarmFrequency === null) {
+      setAlarmError(true);
+      missingFields.push("Alarm interval");
+    }
+
+    if (missingFields.length) {
+      Toast.error(
+        `Please provide: ${missingFields.join(", ")}`,
+        "top",
+        undefined,
+        undefined,
+        true,
+      );
       return;
     }
 
@@ -183,12 +198,12 @@ export default function CreateTask() {
         description: description.trim() || undefined,
         alarm_interval: alarmFrequency ?? null,
       });
-      Alert.alert("Task created", "Your task was saved.");
+      Toast.success("Task created", "top", undefined, undefined, true);
       router.replace("/");
     } catch (err) {
       const message =
         err instanceof Error ? err.message : "Unable to create task.";
-      Alert.alert("Error", message);
+      Toast.error(message, "top", undefined, undefined, true);
     } finally {
       setSaving(false);
     }
@@ -206,6 +221,11 @@ export default function CreateTask() {
       contentContainerClassName="p-6 pb-16 gap-8"
       showsVerticalScrollIndicator={false}
     >
+      <ToastManager
+        position="top"
+        theme={colorScheme === "dark" ? "dark" : "light"}
+      />
+
       <View className="gap-2">
         <Text className="text-2xl font-bold dark:text-white">
           Add a new task
@@ -219,10 +239,14 @@ export default function CreateTask() {
         <Text className="text-lg font-semibold dark:text-white">Title</Text>
         <TextInput
           value={title}
-          onChangeText={setTitle}
+          onChangeText={(text) => {
+            setTitle(text);
+            if (titleError) setTitleError(false);
+          }}
           placeholder="e.g. Morning workout"
           placeholderTextColor="#9ca3af"
           className="w-full rounded-xl border border-black/10 dark:border-white/15 bg-white dark:bg-neutral-900 px-4 py-3 text-base dark:text-white"
+          style={titleError ? { borderColor: "#ef4444" } : undefined}
         />
       </View>
 
@@ -301,6 +325,7 @@ export default function CreateTask() {
           variant="outline"
           className="h-12 w-full rounded-xl border border-black/10 dark:border-white/15 flex-row items-center justify-center gap-2 bg-white dark:bg-neutral-900"
           onPress={openAlarmModal}
+          style={alarmError ? { borderColor: "#ef4444" } : undefined}
         >
           <Feather name="clock" size={18} color={iconColor} />
           <Text className="text-sm font-semibold dark:text-white">
@@ -314,10 +339,18 @@ export default function CreateTask() {
         </Text>
       </View>
 
-      <Button className="h-12 rounded-xl shadow-md shadow-black/10 bg-primary dark:bg-primary">
-        <Text className="text-base font-semibold text-primary-foreground dark:text-black">
-          Save task
-        </Text>
+      <Button
+        className="h-12 rounded-xl shadow-md shadow-black/10 bg-primary dark:bg-primary"
+        disabled={saving}
+        onPress={handleSave}
+      >
+        {saving ? (
+          <ActivityIndicator color="#000" />
+        ) : (
+          <Text className="text-base font-semibold text-primary-foreground dark:text-black">
+            Save task
+          </Text>
+        )}
       </Button>
 
       {/* Category modal temporarily disabled
@@ -497,6 +530,7 @@ export default function CreateTask() {
                     }`}
                     onPress={() => {
                       setAlarmFrequency(option);
+                      if (alarmError) setAlarmError(false);
                       closeAlarmModal();
                     }}
                   >

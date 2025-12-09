@@ -1,8 +1,9 @@
-import client, { supabaseKey, supabaseUrl } from "./client";
+import client from "./client";
 
 export type Task = {
   id: string;
   name: string;
+  user_id: string;
   description: string | null;
   alarm_interval: number | null;
   created_at: string;
@@ -12,25 +13,21 @@ export const getTasks = async () => {
   const { data: sessionData, error: sessionError } =
     await client.auth.getSession();
   if (sessionError) throw sessionError;
-  const accessToken = sessionData.session?.access_token;
-  if (!accessToken) throw new Error("Not authenticated.");
+  const userId = sessionData.session?.user?.id;
+  if (!userId) throw new Error("User id missing.");
 
-  const response = await fetch(
-    `${supabaseUrl}/rest/v1/tasks?select=*&order=created_at.desc`,
-    {
-      headers: {
-        apikey: supabaseKey ?? "",
-        Authorization: `Bearer ${accessToken}`,
-      },
-    },
-  );
+  const { data, error } = await client
+    .from("tasks")
+    .select("*")
+    .eq("user_id", userId)
+    .order("created_at", { ascending: false });
 
-  if (!response.ok) {
-    const message = await response.text();
-    throw new Error(message || "Unable to load tasks.");
+  if (error) {
+    throw new Error(
+      error.message || error.details || "Unable to load tasks (RLS?).",
+    );
   }
-
-  return (await response.json()) as Task[];
+  return data as Task[];
 };
 
 export const createTask = async (task: {
@@ -41,28 +38,24 @@ export const createTask = async (task: {
   const { data: sessionData, error: sessionError } =
     await client.auth.getSession();
   if (sessionError) throw sessionError;
-  const accessToken = sessionData.session?.access_token;
-  if (!accessToken) throw new Error("Not authenticated.");
+  const userId = sessionData.session?.user?.id;
+  if (!userId) throw new Error("User id missing.");
 
-  const response = await fetch(`${supabaseUrl}/rest/v1/tasks`, {
-    method: "POST",
-    headers: {
-      apikey: supabaseKey ?? "",
-      Authorization: `Bearer ${accessToken}`,
-      "Content-Type": "application/json",
-      Prefer: "return=representation",
-    },
-    body: JSON.stringify({
+  const { data, error } = await client
+    .from("tasks")
+    .insert({
       name: task.name,
       description: task.description ?? null,
       alarm_interval: task.alarm_interval ?? null,
-    }),
-  });
+      user_id: userId,
+    })
+    .select()
+    .single();
 
-  if (!response.ok) {
-    const message = await response.text();
-    throw new Error(message || "Unable to create task.");
+  if (error) {
+    throw new Error(
+      error.message || error.details || "Unable to create task (RLS?).",
+    );
   }
-
-  return (await response.json())[0] as Task;
+  return data as Task;
 };
