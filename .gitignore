@@ -86,3 +86,9 @@ app-example
 # generated native folders
 /ios
 /android
+
+
+# Generate different package lock so it can run in both
+# personal and work machien 
+
+package-lock.json
