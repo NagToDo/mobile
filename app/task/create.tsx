@@ -10,12 +10,20 @@ import {
 } from "react-native";
 import { Button } from "@/components/ui/button";
 import { Text } from "@/components/ui/text";
+import {
+  Select,
+  SelectTrigger,
+  SelectContent,
+  SelectItem,
+  SelectValue,
+} from "@/components/ui/select";
 // import { cn } from "@/lib/utils";
 import Feather from "@expo/vector-icons/Feather";
 import { useColorScheme } from "nativewind";
 import { createTask } from "@/api/tasks";
 import { useRouter } from "expo-router";
 import ToastManager, { Toast } from "toastify-react-native";
+import { Calendar } from "react-native-calendars";
 
 // const MAX_CATEGORIES = 3;
 
@@ -163,8 +171,47 @@ export default function CreateTask() {
   const [titleError, setTitleError] = useState(false);
   const [alarmError, setAlarmError] = useState(false);
 
+  // Date modal state
+  const [dateModalVisible, setDateModalVisible] = useState(false);
+  const [frequency, setFrequency] = useState<{
+    value: string;
+    label: string;
+  }>({ value: "single", label: "Single Day" });
+  const [selectedDate, setSelectedDate] = useState<string>(
+    new Date().toISOString().split("T")[0],
+  );
+
+  const frequencyOptions = [
+    { value: "daily", label: "Repeat daily" },
+    { value: "single", label: "Single Day" },
+    { value: "weekly", label: "Every Week" },
+    { value: "monthly", label: "Every Month" },
+  ];
+
   const openAlarmModal = () => setAlarmModalVisible(true);
   const closeAlarmModal = () => setAlarmModalVisible(false);
+
+  const openDateModal = () => setDateModalVisible(true);
+  const closeDateModal = () => setDateModalVisible(false);
+
+  const getDateButtonLabel = () => {
+    if (frequency.value === "daily") return "Daily";
+    if (frequency.value === "weekly") return `Weekly`;
+    if (frequency.value === "monthly") return `Monthly`;
+    // Single day - show the date
+    const date = new Date(selectedDate);
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const tomorrow = new Date(today);
+    tomorrow.setDate(tomorrow.getDate() + 1);
+
+    if (date.toDateString() === today.toDateString()) return "Today";
+    if (date.toDateString() === tomorrow.toDateString()) return "Tomorrow";
+    return date.toLocaleDateString("en-US", {
+      month: "short",
+      day: "numeric",
+    });
+  };
 
   const handleSave = async () => {
     const trimmedTitle = title.trim();
@@ -318,6 +365,23 @@ export default function CreateTask() {
         </Text>
       </View>
       */}
+
+      <View className="gap-3">
+        <Text className="text-lg font-semibold dark:text-white">Date</Text>
+        <Button
+          variant="outline"
+          className="h-12 w-full rounded-xl border border-black/10 dark:border-white/15 flex-row items-center justify-center gap-2 bg-white dark:bg-neutral-900"
+          onPress={openDateModal}
+        >
+          <Feather name="calendar" size={18} color={iconColor} />
+          <Text className="text-sm font-semibold dark:text-white">
+            {getDateButtonLabel()}
+          </Text>
+        </Button>
+        <Text className="text-xs text-black/50 dark:text-white/60">
+          Choose when to schedule this task.
+        </Text>
+      </View>
 
       <View className="gap-3">
         <Text className="text-lg font-semibold dark:text-white">Alarm</Text>
@@ -545,6 +609,113 @@ export default function CreateTask() {
                 );
               })}
             </ScrollView>
+          </View>
+        </View>
+      </Modal>
+
+      <Modal
+        animationType="slide"
+        transparent
+        visible={dateModalVisible}
+        onRequestClose={closeDateModal}
+      >
+        <View className="flex-1 justify-end bg-black/40">
+          <View className="bg-white dark:bg-neutral-950 rounded-t-3xl p-6 gap-4 max-h-[85%] border border-black/10 dark:border-white/20">
+            <View className="h-1 w-12 rounded-full bg-black/10 self-center" />
+            <View className="flex-row items-center justify-between">
+              <Text className="text-lg font-semibold dark:text-white">
+                Schedule
+              </Text>
+              <Pressable hitSlop={8} onPress={closeDateModal}>
+                <Feather name="x" size={22} color={iconColor} />
+              </Pressable>
+            </View>
+
+            <View className="gap-2">
+              <Text className="text-sm font-medium dark:text-white">
+                Frecuencia
+              </Text>
+              <Select
+                value={frequency}
+                onValueChange={(option) => {
+                  if (option) setFrequency(option);
+                }}
+              >
+                <SelectTrigger className="w-full h-12 rounded-xl border border-black/10 dark:border-white/15 bg-white dark:bg-neutral-900">
+                  <SelectValue placeholder="Select frequency" />
+                </SelectTrigger>
+                <SelectContent>
+                  {frequencyOptions.map((option) => (
+                    <SelectItem
+                      key={option.value}
+                      label={option.label}
+                      value={option.value}
+                    >
+                      {option.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </View>
+
+            {frequency.value !== "daily" && (
+              <View className="gap-2">
+                <Text className="text-sm font-medium dark:text-white">
+                  Select Date
+                </Text>
+                <View className="rounded-xl overflow-hidden border border-black/10 dark:border-white/15">
+                  <Calendar
+                    current={selectedDate}
+                    onDayPress={(day: { dateString: string }) => {
+                      setSelectedDate(day.dateString);
+                    }}
+                    markedDates={{
+                      [selectedDate]: {
+                        selected: true,
+                        selectedColor: "#10b981",
+                      },
+                    }}
+                    theme={{
+                      backgroundColor:
+                        colorScheme === "dark" ? "#0a0a0a" : "#ffffff",
+                      calendarBackground:
+                        colorScheme === "dark" ? "#0a0a0a" : "#ffffff",
+                      textSectionTitleColor:
+                        colorScheme === "dark" ? "#9ca3af" : "#6b7280",
+                      selectedDayBackgroundColor: "#10b981",
+                      selectedDayTextColor: "#ffffff",
+                      todayTextColor: "#10b981",
+                      dayTextColor:
+                        colorScheme === "dark" ? "#ffffff" : "#000000",
+                      textDisabledColor:
+                        colorScheme === "dark" ? "#4b5563" : "#d1d5db",
+                      monthTextColor:
+                        colorScheme === "dark" ? "#ffffff" : "#000000",
+                      arrowColor:
+                        colorScheme === "dark" ? "#ffffff" : "#000000",
+                    }}
+                  />
+                </View>
+              </View>
+            )}
+
+            <View className="gap-2">
+              <Text className="text-sm font-medium dark:text-white">Hora</Text>
+              <View className="h-12 rounded-xl border border-black/10 dark:border-white/15 bg-white dark:bg-neutral-900 items-center justify-center">
+                <Text className="text-sm text-black/50 dark:text-white/60">
+                  Time Picker Placeholder
+                </Text>
+              </View>
+            </View>
+
+            <Button
+              className="h-12 rounded-xl bg-primary dark:bg-primary mt-2"
+              onPress={closeDateModal}
+            >
+              <Text className="text-base font-semibold text-primary-foreground dark:text-black">
+                Confirm
+              </Text>
+            </Button>
           </View>
         </View>
       </Modal>
