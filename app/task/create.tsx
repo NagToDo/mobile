@@ -1,29 +1,29 @@
+import { Button } from "@/components/ui/button";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Text } from "@/components/ui/text";
 import { useState } from "react";
 import {
   ActivityIndicator,
-  Alert,
   Modal,
   Pressable,
   ScrollView,
   TextInput,
   View,
 } from "react-native";
-import { Button } from "@/components/ui/button";
-import { Text } from "@/components/ui/text";
-import {
-  Select,
-  SelectTrigger,
-  SelectContent,
-  SelectItem,
-  SelectValue,
-} from "@/components/ui/select";
 // import { cn } from "@/lib/utils";
-import Feather from "@expo/vector-icons/Feather";
-import { useColorScheme } from "nativewind";
 import { createTask } from "@/api/tasks";
+import Feather from "@expo/vector-icons/Feather";
 import { useRouter } from "expo-router";
-import ToastManager, { Toast } from "toastify-react-native";
+import { useColorScheme } from "nativewind";
 import { Calendar } from "react-native-calendars";
+import DatePicker from "react-native-date-picker";
+import ToastManager, { Toast } from "toastify-react-native";
 
 // const MAX_CATEGORIES = 3;
 
@@ -173,13 +173,16 @@ export default function CreateTask() {
 
   // Date modal state
   const [dateModalVisible, setDateModalVisible] = useState(false);
-  const [frequency, setFrequency] = useState<{
-    value: string;
-    label: string;
-  }>({ value: "single", label: "Single Day" });
+  const [frequency, setFrequency] = useState<string>("single");
   const [selectedDate, setSelectedDate] = useState<string>(
     new Date().toISOString().split("T")[0],
   );
+  const [selectedTime, setSelectedTime] = useState<Date>(() => {
+    const now = new Date();
+    now.setSeconds(0, 0);
+    return now;
+  });
+  const [timePickerOpen, setTimePickerOpen] = useState(false);
 
   const frequencyOptions = [
     { value: "daily", label: "Repeat daily" },
@@ -188,6 +191,12 @@ export default function CreateTask() {
     { value: "monthly", label: "Every Month" },
   ];
 
+  const getFrequencyOption = (value: string) => {
+    return (
+      frequencyOptions.find((opt) => opt.value === value) || frequencyOptions[1]
+    );
+  };
+
   const openAlarmModal = () => setAlarmModalVisible(true);
   const closeAlarmModal = () => setAlarmModalVisible(false);
 
@@ -195,9 +204,9 @@ export default function CreateTask() {
   const closeDateModal = () => setDateModalVisible(false);
 
   const getDateButtonLabel = () => {
-    if (frequency.value === "daily") return "Daily";
-    if (frequency.value === "weekly") return `Weekly`;
-    if (frequency.value === "monthly") return `Monthly`;
+    if (frequency === "daily") return "Repeat daily";
+    if (frequency === "weekly") return `Every week`;
+    if (frequency === "monthly") return `Every month`;
     // Single day - show the date
     const date = new Date(selectedDate);
     const today = new Date();
@@ -210,6 +219,14 @@ export default function CreateTask() {
     return date.toLocaleDateString("en-US", {
       month: "short",
       day: "numeric",
+    });
+  };
+
+  const formatTime = (date: Date) => {
+    return date.toLocaleTimeString("en-US", {
+      hour: "numeric",
+      minute: "2-digit",
+      hour12: true,
     });
   };
 
@@ -633,12 +650,18 @@ export default function CreateTask() {
 
             <View className="gap-2">
               <Text className="text-sm font-medium dark:text-white">
-                Frecuencia
+                Frequency
               </Text>
               <Select
-                value={frequency}
+                value={getFrequencyOption(frequency)}
                 onValueChange={(option) => {
-                  if (option) setFrequency(option);
+                  if (
+                    option &&
+                    typeof option === "object" &&
+                    "value" in option
+                  ) {
+                    setFrequency(option.value);
+                  }
                 }}
               >
                 <SelectTrigger className="w-full h-12 rounded-xl border border-black/10 dark:border-white/15 bg-white dark:bg-neutral-900">
@@ -658,7 +681,7 @@ export default function CreateTask() {
               </Select>
             </View>
 
-            {frequency.value !== "daily" && (
+            {frequency !== "daily" && (
               <View className="gap-2">
                 <Text className="text-sm font-medium dark:text-white">
                   Select Date
@@ -672,7 +695,8 @@ export default function CreateTask() {
                     markedDates={{
                       [selectedDate]: {
                         selected: true,
-                        selectedColor: "#10b981",
+                        selectedColor:
+                          colorScheme === "dark" ? "#ffffff" : "#000000",
                       },
                     }}
                     theme={{
@@ -682,8 +706,10 @@ export default function CreateTask() {
                         colorScheme === "dark" ? "#0a0a0a" : "#ffffff",
                       textSectionTitleColor:
                         colorScheme === "dark" ? "#9ca3af" : "#6b7280",
-                      selectedDayBackgroundColor: "#10b981",
-                      selectedDayTextColor: "#ffffff",
+                      selectedDayBackgroundColor:
+                        colorScheme === "dark" ? "#ffffff" : "#000000",
+                      selectedDayTextColor:
+                        colorScheme === "dark" ? "#000000" : "#ffffff",
                       todayTextColor: "#10b981",
                       dayTextColor:
                         colorScheme === "dark" ? "#ffffff" : "#000000",
@@ -700,12 +726,31 @@ export default function CreateTask() {
             )}
 
             <View className="gap-2">
-              <Text className="text-sm font-medium dark:text-white">Hora</Text>
-              <View className="h-12 rounded-xl border border-black/10 dark:border-white/15 bg-white dark:bg-neutral-900 items-center justify-center">
-                <Text className="text-sm text-black/50 dark:text-white/60">
-                  Time Picker Placeholder
+              <Text className="text-sm font-medium dark:text-white">Hour</Text>
+              <Pressable
+                className="h-12 rounded-xl border border-black/10 dark:border-white/15 bg-white dark:bg-neutral-900 flex-row items-center justify-center gap-2"
+                onPress={() => setTimePickerOpen(true)}
+              >
+                <Feather name="clock" size={18} color={iconColor} />
+                <Text className="text-sm font-semibold dark:text-white">
+                  {formatTime(selectedTime)}
                 </Text>
-              </View>
+              </Pressable>
+              <DatePicker
+                modal
+                mode="time"
+                open={timePickerOpen}
+                date={selectedTime}
+                onConfirm={(time) => {
+                  setTimePickerOpen(false);
+                  setSelectedTime(time);
+                }}
+                onCancel={() => setTimePickerOpen(false)}
+                title="Select Time"
+                confirmText="Confirm"
+                cancelText="Cancel"
+                theme={colorScheme === "dark" ? "dark" : "light"}
+              />
             </View>
 
             <Button
