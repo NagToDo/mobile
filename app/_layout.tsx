@@ -1,8 +1,13 @@
+import { notificationService } from "@/services/notification";
 import { PortalHost } from "@rn-primitives/portal";
 import { Stack } from "expo-router";
+import { useEffect } from "react";
 import "../global.css";
 
 export default function RootLayout() {
+  useEffect(() => {
+    notificationService.initialize();
+  }, []);
   return (
     <>
       <Stack

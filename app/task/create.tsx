@@ -9,6 +9,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Text } from "@/components/ui/text";
+import { notificationService } from "@/services/notification";
 import { useState } from "react";
 import {
   ActivityIndicator,
@@ -166,7 +167,7 @@ export default function CreateTask() {
   const [notificationTime, setNotificationTime] = useState("Set time");
   const [notificationType, setNotificationType] = useState("Notification type");
   const [alarmModalVisible, setAlarmModalVisible] = useState(false);
-  const [alarmFrequency, setAlarmFrequency] = useState<number | null>(null);
+  const [alarmFrequency, setAlarmFrequency] = useState<number | null>(1);
   // const [emojiPickerVisible, setEmojiPickerVisible] = useState(false);
   // const [emojiSearch, setEmojiSearch] = useState("");
   // const [categoryStep, setCategoryStep] = useState<1 | 2>(1);
@@ -181,7 +182,20 @@ export default function CreateTask() {
   // Date modal state
   const [dateModalVisible, setDateModalVisible] = useState(false);
   const [frequency, setFrequency] = useState<string>("single");
-  const [selectedDate, setSelectedDate] = useState<string | null>(null);
+  const [selectedDate, setSelectedDate] = useState<string>(() => {
+    const now = new Date();
+    const year = now.getFullYear();
+    const month = String(now.getMonth() + 1).padStart(2, "0");
+    const day = String(now.getDate()).padStart(2, "0");
+    return `${year}-${month}-${day}`;
+  });
+  const todayString = (() => {
+    const now = new Date();
+    const year = now.getFullYear();
+    const month = String(now.getMonth() + 1).padStart(2, "0");
+    const day = String(now.getDate()).padStart(2, "0");
+    return `${year}-${month}-${day}`;
+  })();
   const [selectedTime, setSelectedTime] = useState<Date>(() => {
     const now = new Date();
     now.setSeconds(0, 0);
@@ -202,32 +216,33 @@ export default function CreateTask() {
   const openDateModal = () => setDateModalVisible(true);
   const closeDateModal = () => setDateModalVisible(false);
 
-  const getDateButtonLabel = () => {
-    if (frequency === "daily") return "Repeat daily";
-    if (!selectedDate) return "Select date";
-    if (frequency === "weekly") return `Every week`;
-    if (frequency === "monthly") return `Every month`;
-    // Single day - show the date
-    const date = new Date(selectedDate);
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-    const tomorrow = new Date(today);
-    tomorrow.setDate(tomorrow.getDate() + 1);
-
-    if (date.toDateString() === today.toDateString()) return "Today";
-    if (date.toDateString() === tomorrow.toDateString()) return "Tomorrow";
-    return date.toLocaleDateString("en-US", {
-      month: "short",
-      day: "numeric",
-    });
-  };
-
   const formatTime = (date: Date) => {
     return date.toLocaleTimeString("en-US", {
       hour: "numeric",
       minute: "2-digit",
       hour12: true,
     });
+  };
+
+  const getDateButtonLabel = () => {
+    const timeStr = formatTime(selectedTime);
+    if (frequency === "daily") return `Repeat daily at ${timeStr}`;
+    if (frequency === "weekly") return `Every week at ${timeStr}`;
+    if (frequency === "monthly") return `Every month at ${timeStr}`;
+    // Single day - show the date
+    const [y, m, d] = selectedDate.split("-").map(Number);
+    const date = new Date(y, m - 1, d);
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const tomorrow = new Date(today);
+    tomorrow.setDate(tomorrow.getDate() + 1);
+
+    if (date.getTime() === today.getTime()) return `Today at ${timeStr}`;
+    if (date.getTime() === tomorrow.getTime()) return `Tomorrow at ${timeStr}`;
+    return `${date.toLocaleDateString("en-US", {
+      month: "short",
+      day: "numeric",
+    })} at ${timeStr}`;
   };
 
   const handleSave = async () => {
@@ -250,11 +265,7 @@ export default function CreateTask() {
       missingFields.push("Alarm interval");
     }
 
-    // Date is required for non-daily frequencies
-    if (frequency !== "daily" && !selectedDate) {
-      setDateError(true);
-      missingFields.push("Date");
-    }
+    // Date validation is no longer needed since we default to today
 
     if (missingFields.length) {
       Toast.error(
@@ -270,10 +281,8 @@ export default function CreateTask() {
     setSaving(true);
     try {
       // Combine selectedDate and selectedTime into a single timestamp
-      // For daily frequency, use today's date as base
-      const baseDateStr =
-        selectedDate || new Date().toISOString().split("T")[0];
-      const dateObj = new Date(baseDateStr);
+      const [y, m, d] = selectedDate.split("-").map(Number);
+      const dateObj = new Date(y, m - 1, d);
       dateObj.setHours(
         selectedTime.getHours(),
         selectedTime.getMinutes(),
@@ -282,13 +291,20 @@ export default function CreateTask() {
       );
       const alarmTimeISO = dateObj.toISOString();
 
-      await createTask({
+      const newTask = await createTask({
         name: trimmedTitle,
         description: trimmedDescription,
         alarm_interval: alarmFrequency!,
         alarm_time: alarmTimeISO,
         frecuency: frequency,
       });
+
+      // Schedule notification for the new task
+      const hasPermission = await notificationService.requestPermissions();
+      if (hasPermission) {
+        await notificationService.scheduleNotification(newTask);
+      }
+
       router.replace("/");
     } catch (err) {
       const message =
@@ -729,21 +745,18 @@ export default function CreateTask() {
                 <View className="rounded-xl overflow-hidden border border-black/10 dark:border-white/15">
                   <Calendar
                     current={selectedDate || undefined}
+                    minDate={todayString}
                     onDayPress={(day: { dateString: string }) => {
                       setSelectedDate(day.dateString);
                       if (dateError) setDateError(false);
                     }}
-                    markedDates={
-                      selectedDate
-                        ? {
-                            [selectedDate]: {
-                              selected: true,
-                              selectedColor:
-                                colorScheme === "dark" ? "#ffffff" : "#000000",
-                            },
-                          }
-                        : {}
-                    }
+                    markedDates={{
+                      [selectedDate]: {
+                        selected: true,
+                        selectedColor:
+                          colorScheme === "dark" ? "#ffffff" : "#000000",
+                      },
+                    }}
                     theme={{
                       backgroundColor:
                         colorScheme === "dark" ? "#0a0a0a" : "#ffffff",

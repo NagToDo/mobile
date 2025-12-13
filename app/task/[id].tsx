@@ -18,6 +18,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Text } from "@/components/ui/text";
+import { notificationService } from "@/services/notification";
 import Feather from "@expo/vector-icons/Feather";
 import { PortalHost } from "@rn-primitives/portal";
 import { useLocalSearchParams, useRouter } from "expo-router";
@@ -64,6 +65,13 @@ export default function TaskDetail() {
   const [dateModalVisible, setDateModalVisible] = useState(false);
   const [frequency, setFrequency] = useState<string>("single");
   const [selectedDate, setSelectedDate] = useState<string | null>(null);
+  const todayString = (() => {
+    const now = new Date();
+    const year = now.getFullYear();
+    const month = String(now.getMonth() + 1).padStart(2, "0");
+    const day = String(now.getDate()).padStart(2, "0");
+    return `${year}-${month}-${day}`;
+  })();
   const [selectedTime, setSelectedTime] = useState<Date>(() => {
     const now = new Date();
     now.setSeconds(0, 0);
@@ -94,7 +102,10 @@ export default function TaskDetail() {
         // Parse alarm_time
         if (task.alarm_time) {
           const alarmDate = new Date(task.alarm_time);
-          setSelectedDate(alarmDate.toISOString().split("T")[0]);
+          const year = alarmDate.getFullYear();
+          const month = String(alarmDate.getMonth() + 1).padStart(2, "0");
+          const day = String(alarmDate.getDate()).padStart(2, "0");
+          setSelectedDate(`${year}-${month}-${day}`);
           setSelectedTime(alarmDate);
         }
       } catch (err) {
@@ -115,32 +126,34 @@ export default function TaskDetail() {
   const openDateModal = () => setDateModalVisible(true);
   const closeDateModal = () => setDateModalVisible(false);
 
-  const getDateButtonLabel = () => {
-    if (frequency === "daily") return "Repeat daily";
-    if (!selectedDate) return "Select date";
-    if (frequency === "weekly") return `Every week`;
-    if (frequency === "monthly") return `Every month`;
-    // Single day - show the date
-    const date = new Date(selectedDate);
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-    const tomorrow = new Date(today);
-    tomorrow.setDate(tomorrow.getDate() + 1);
-
-    if (date.toDateString() === today.toDateString()) return "Today";
-    if (date.toDateString() === tomorrow.toDateString()) return "Tomorrow";
-    return date.toLocaleDateString("en-US", {
-      month: "short",
-      day: "numeric",
-    });
-  };
-
   const formatTime = (date: Date) => {
     return date.toLocaleTimeString("en-US", {
       hour: "numeric",
       minute: "2-digit",
       hour12: true,
     });
+  };
+
+  const getDateButtonLabel = () => {
+    const timeStr = formatTime(selectedTime);
+    if (frequency === "daily") return `Repeat daily at ${timeStr}`;
+    if (!selectedDate) return "Select date";
+    if (frequency === "weekly") return `Every week at ${timeStr}`;
+    if (frequency === "monthly") return `Every month at ${timeStr}`;
+    // Single day - show the date
+    const [y, m, d] = selectedDate.split("-").map(Number);
+    const date = new Date(y, m - 1, d);
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const tomorrow = new Date(today);
+    tomorrow.setDate(tomorrow.getDate() + 1);
+
+    if (date.getTime() === today.getTime()) return `Today at ${timeStr}`;
+    if (date.getTime() === tomorrow.getTime()) return `Tomorrow at ${timeStr}`;
+    return `${date.toLocaleDateString("en-US", {
+      month: "short",
+      day: "numeric",
+    })} at ${timeStr}`;
   };
 
   const handleSave = async () => {
@@ -186,9 +199,17 @@ export default function TaskDetail() {
     try {
       // Combine selectedDate and selectedTime into a single timestamp
       // For daily frequency, use today's date as base
-      const baseDateStr =
-        selectedDate || new Date().toISOString().split("T")[0];
-      const dateObj = new Date(baseDateStr);
+      let baseDateStr = selectedDate;
+      if (!baseDateStr) {
+        const now = new Date();
+        const year = now.getFullYear();
+        const month = String(now.getMonth() + 1).padStart(2, "0");
+        const day = String(now.getDate()).padStart(2, "0");
+        baseDateStr = `${year}-${month}-${day}`;
+      }
+
+      const [y, m, d] = baseDateStr.split("-").map(Number);
+      const dateObj = new Date(y, m - 1, d);
       dateObj.setHours(
         selectedTime.getHours(),
         selectedTime.getMinutes(),
@@ -197,13 +218,20 @@ export default function TaskDetail() {
       );
       const alarmTimeISO = dateObj.toISOString();
 
-      await updateTask(id, {
+      const updatedTaskData = await updateTask(id, {
         name: trimmedTitle,
         description: trimmedDescription,
         alarm_interval: alarmFrequency!,
         alarm_time: alarmTimeISO,
         frecuency: frequency,
       });
+
+      // Update the scheduled notification
+      const hasPermission = await notificationService.requestPermissions();
+      if (hasPermission) {
+        await notificationService.scheduleNotification(updatedTaskData);
+      }
+
       Toast.success("Task updated", "top", undefined, undefined, true);
       router.replace("/");
     } catch (err) {
@@ -223,6 +251,8 @@ export default function TaskDetail() {
     if (!id) return;
     setDeleting(true);
     try {
+      // Cancel the notification before deleting the task
+      await notificationService.cancelNotification(id);
       await deleteTask(id);
       setDeleteDialogOpen(false);
       router.replace("/");
@@ -490,7 +520,8 @@ export default function TaskDetail() {
                 </Text>
                 <View className="rounded-xl overflow-hidden border border-black/10 dark:border-white/15">
                   <Calendar
-                    current={selectedDate || undefined}
+                    current={selectedDate || todayString}
+                    minDate={todayString}
                     onDayPress={(day: { dateString: string }) => {
                       setSelectedDate(day.dateString);
                       if (dateError) setDateError(false);
