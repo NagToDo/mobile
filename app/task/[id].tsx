@@ -225,7 +225,6 @@ export default function TaskDetail() {
     try {
       await deleteTask(id);
       setDeleteDialogOpen(false);
-      Toast.success("Task deleted", "top", undefined, undefined, true);
       router.replace("/");
     } catch (err) {
       const message =
