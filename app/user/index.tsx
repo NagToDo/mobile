@@ -1,14 +1,12 @@
-import { View } from "react-native";
 import { Text } from "@/components/ui/text";
-import BackHeader from "@/components/BackHeader";
 import { useColorScheme } from "nativewind";
+import { View } from "react-native";
 
 export default function UserScreen() {
   const { colorScheme } = useColorScheme();
 
   return (
     <View className="flex-1 bg-white dark:bg-black px-6 pt-6">
-      <BackHeader />
       <View className="flex-1 items-center justify-center">
         <Text className="text-2xl font-bold dark:text-white">User page</Text>
         <Text className="mt-2 text-base text-black/60 dark:text-white/60 text-center">

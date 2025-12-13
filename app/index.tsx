@@ -17,40 +17,15 @@ import {
   TextInput,
   View,
 } from "react-native";
-import Animated, {
-  Extrapolation,
-  interpolate,
-  useAnimatedStyle,
-  useSharedValue,
-  withSpring,
-} from "react-native-reanimated";
 
 export default function Index() {
   const router = useRouter();
   const { colorScheme, setColorScheme } = useColorScheme();
 
-  // Animation value for theme toggle icon
-  const rotation = useSharedValue(0);
-
   const toggleTheme = () => {
-    // Animate: cute full spin so icon stays upright
-    rotation.value = withSpring(rotation.value + 360, {
-      damping: 15,
-      stiffness: 150,
-    });
-    setColorScheme(colorScheme === "dark" ? "light" : "dark");
+    const newScheme = colorScheme === "dark" ? "light" : "dark";
+    setColorScheme(newScheme);
   };
-
-  // Base offset to correct moon icon orientation
-  const iconRotationOffset = colorScheme === "dark" ? 0 : -125;
-
-  const animatedIconStyle = useAnimatedStyle(() => ({
-    transform: [
-      {
-        rotate: `${interpolate(rotation.value, [0, 360], [0, 360], Extrapolation.EXTEND) + iconRotationOffset}deg`,
-      },
-    ],
-  }));
   const [query, setQuery] = useState("");
   const [session, setSession] = useState<Session | null>(null);
   const [sessionLoading, setSessionLoading] = useState(true);
@@ -145,8 +120,8 @@ export default function Index() {
 
   return (
     <View className="flex-1 p-6 gap-4 bg-white dark:bg-black">
-      <View className="h-8 flex-row items-center justify-between">
-        <Text className="text-xl font-bold dark:text-white">My Tasks</Text>
+      <View className="flex-row items-center justify-between mt-2">
+        <Text className="text-2xl font-bold dark:text-white">My Tasks</Text>
         <View className="flex-row items-center gap-3">
           <Button
             variant="outline"
@@ -164,13 +139,11 @@ export default function Index() {
             className="h-8 w-8 rounded-full border border-black/15 dark:border-white/20 bg-white dark:bg-neutral-900"
             onPress={toggleTheme}
           >
-            <Animated.View style={animatedIconStyle}>
-              <Feather
-                name={colorScheme === "dark" ? "sun" : "moon"}
-                size={16}
-                color={colorScheme === "dark" ? "#ffffff" : "#000000"}
-              />
-            </Animated.View>
+            <Feather
+              name={colorScheme === "dark" ? "sun" : "moon"}
+              size={16}
+              color={colorScheme === "dark" ? "#ffffff" : "#000000"}
+            />
           </Button>
         </View>
       </View>

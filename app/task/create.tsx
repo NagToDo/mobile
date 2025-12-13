@@ -9,7 +9,6 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Text } from "@/components/ui/text";
-import BackHeader from "@/components/BackHeader";
 import { useState } from "react";
 import {
   ActivityIndicator,
@@ -285,8 +284,6 @@ export default function CreateTask() {
         position="top"
         theme={colorScheme === "dark" ? "dark" : "light"}
       />
-
-      <BackHeader />
 
       <View className="gap-1">
         <Text className="text-2xl font-bold dark:text-white">

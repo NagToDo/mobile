@@ -15,7 +15,6 @@ import {
 import ToastManager, { Toast } from "toastify-react-native";
 
 import supabase from "@/api/client";
-import BackHeader from "@/components/BackHeader";
 import { Button } from "@/components/ui/button";
 import { Text } from "@/components/ui/text";
 
@@ -144,8 +143,7 @@ export default function AuthScreen() {
       showsVerticalScrollIndicator={false}
     >
       <ToastManager position="top" theme="light" />
-      <View className="flex-row items-center justify-between">
-        <BackHeader />
+      <View className="flex-row items-center justify-end">
         <Button
           variant="outline"
           size="icon"
