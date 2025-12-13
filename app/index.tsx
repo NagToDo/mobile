@@ -1,27 +1,56 @@
+import supabase from "@/api/client";
+import { getTasks, type Task } from "@/api/tasks";
+import TaskCard from "@/components/TaskCard";
+import TaskCardSkeleton from "@/components/TaskCardSkeleton";
+import { Button } from "@/components/ui/button";
+import { Text } from "@/components/ui/text";
+import Entypo from "@expo/vector-icons/Entypo";
+import Feather from "@expo/vector-icons/Feather";
+import type { Session } from "@supabase/supabase-js";
+import { Redirect, useRouter } from "expo-router";
+import { useColorScheme } from "nativewind";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import {
-  ActivityIndicator,
   Alert,
   RefreshControl,
   ScrollView,
   TextInput,
   View,
 } from "react-native";
-import { Button } from "@/components/ui/button";
-import { Text } from "@/components/ui/text";
-import Entypo from "@expo/vector-icons/Entypo";
-import TaskCard from "@/components/TaskCard";
-import { useColorScheme } from "nativewind";
-import { useCallback, useEffect, useMemo, useState } from "react";
-import { Redirect, useRouter } from "expo-router";
-import type { Session } from "@supabase/supabase-js";
-import supabase from "@/api/client";
-import { getTasks, type Task } from "@/api/tasks";
+import Animated, {
+  Extrapolation,
+  interpolate,
+  useAnimatedStyle,
+  useSharedValue,
+  withSpring,
+} from "react-native-reanimated";
 
 export default function Index() {
   const router = useRouter();
   const { colorScheme, setColorScheme } = useColorScheme();
-  const toggleTheme = () =>
+
+  // Animation value for theme toggle icon
+  const rotation = useSharedValue(0);
+
+  const toggleTheme = () => {
+    // Animate: cute full spin so icon stays upright
+    rotation.value = withSpring(rotation.value + 360, {
+      damping: 15,
+      stiffness: 150,
+    });
     setColorScheme(colorScheme === "dark" ? "light" : "dark");
+  };
+
+  // Base offset to correct moon icon orientation
+  const iconRotationOffset = colorScheme === "dark" ? 0 : -125;
+
+  const animatedIconStyle = useAnimatedStyle(() => ({
+    transform: [
+      {
+        rotate: `${interpolate(rotation.value, [0, 360], [0, 360], Extrapolation.EXTEND) + iconRotationOffset}deg`,
+      },
+    ],
+  }));
   const [query, setQuery] = useState("");
   const [session, setSession] = useState<Session | null>(null);
   const [sessionLoading, setSessionLoading] = useState(true);
@@ -131,13 +160,17 @@ export default function Index() {
           </Button>
           <Button
             variant="outline"
-            size="sm"
-            className="h-8 px-3 rounded-full border border-black/15 dark:border-white/20 bg-white dark:bg-neutral-900"
+            size="icon"
+            className="h-8 w-8 rounded-full border border-black/15 dark:border-white/20 bg-white dark:bg-neutral-900"
             onPress={toggleTheme}
           >
-            <Text className="text-xs font-semibold dark:text-white">
-              {colorScheme === "dark" ? "Light" : "Dark"} mode
-            </Text>
+            <Animated.View style={animatedIconStyle}>
+              <Feather
+                name={colorScheme === "dark" ? "sun" : "moon"}
+                size={16}
+                color={colorScheme === "dark" ? "#ffffff" : "#000000"}
+              />
+            </Animated.View>
           </Button>
         </View>
       </View>
@@ -176,15 +209,11 @@ export default function Index() {
         }
       >
         {tasksLoading && (
-          <View className="items-center justify-center py-12">
-            <ActivityIndicator
-              size="small"
-              color={colorScheme === "dark" ? "#ffffff" : "#000000"}
-            />
-            <Text className="mt-3 text-sm text-black/70 dark:text-white/70">
-              Loading tasks...
-            </Text>
-          </View>
+          <>
+            <TaskCardSkeleton />
+            <TaskCardSkeleton />
+            <TaskCardSkeleton />
+          </>
         )}
 
         {!tasksLoading && tasksError && (

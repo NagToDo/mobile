@@ -9,6 +9,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Text } from "@/components/ui/text";
+import BackHeader from "@/components/BackHeader";
 import { useState } from "react";
 import {
   ActivityIndicator,
@@ -279,17 +280,15 @@ export default function CreateTask() {
   // );
 
   return (
-    <ScrollView
-      className="flex-1 bg-white dark:bg-black"
-      contentContainerClassName="p-6 pb-16 gap-8"
-      showsVerticalScrollIndicator={false}
-    >
+    <View className="flex-1 bg-white dark:bg-black p-6 gap-5">
       <ToastManager
         position="top"
         theme={colorScheme === "dark" ? "dark" : "light"}
       />
 
-      <View className="gap-2">
+      <BackHeader />
+
+      <View className="gap-1">
         <Text className="text-2xl font-bold dark:text-white">
           Add a new task
         </Text>
@@ -298,8 +297,8 @@ export default function CreateTask() {
         </Text>
       </View>
 
-      <View className="gap-3">
-        <Text className="text-lg font-semibold dark:text-white">Title</Text>
+      <View className="gap-2">
+        <Text className="text-base font-semibold dark:text-white">Title</Text>
         <TextInput
           value={title}
           onChangeText={(text) => {
@@ -313,8 +312,8 @@ export default function CreateTask() {
         />
       </View>
 
-      <View className="gap-3">
-        <Text className="text-lg font-semibold dark:text-white">
+      <View className="gap-2">
+        <Text className="text-base font-semibold dark:text-white">
           Description
         </Text>
         <TextInput
@@ -382,9 +381,9 @@ export default function CreateTask() {
       </View>
       */}
 
-      <View className="gap-3">
-        <View className="gap-1">
-          <Text className="text-lg font-semibold dark:text-white">Date</Text>
+      <View className="gap-2">
+        <View className="gap-0.5">
+          <Text className="text-base font-semibold dark:text-white">Date</Text>
           <Text className="text-xs text-black/50 dark:text-white/60">
             Choose when to schedule this task.
           </Text>
@@ -401,9 +400,9 @@ export default function CreateTask() {
         </Button>
       </View>
 
-      <View className="gap-3">
-        <View className="gap-1">
-          <Text className="text-lg font-semibold dark:text-white">Alarm</Text>
+      <View className="gap-2">
+        <View className="gap-0.5">
+          <Text className="text-base font-semibold dark:text-white">Alarm</Text>
           <Text className="text-xs text-black/50 dark:text-white/60">
             Choose how often to send the reminder.
           </Text>
@@ -774,6 +773,6 @@ export default function CreateTask() {
           <PortalHost name="dateModalPortal" />
         </View>
       </Modal>
-    </ScrollView>
+    </View>
   );
 }

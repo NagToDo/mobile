@@ -1,25 +1,29 @@
+import AntDesign from "@expo/vector-icons/AntDesign";
+import Feather from "@expo/vector-icons/Feather";
+import type { Session } from "@supabase/supabase-js";
+import * as Linking from "expo-linking";
+import { Redirect, useRouter } from "expo-router";
+import { useColorScheme } from "nativewind";
 import { useEffect, useState } from "react";
 import {
   ActivityIndicator,
+  Pressable,
   ScrollView,
   TextInput,
   View,
-  Pressable,
 } from "react-native";
-import { Redirect, useRouter } from "expo-router";
-import * as Linking from "expo-linking";
-import { useColorScheme } from "nativewind";
-import AntDesign from "@expo/vector-icons/AntDesign";
-import type { Session } from "@supabase/supabase-js";
 import ToastManager, { Toast } from "toastify-react-native";
 
 import supabase from "@/api/client";
+import BackHeader from "@/components/BackHeader";
 import { Button } from "@/components/ui/button";
 import { Text } from "@/components/ui/text";
 
 export default function SignupScreen() {
   const router = useRouter();
-  const { colorScheme } = useColorScheme();
+  const { colorScheme, setColorScheme } = useColorScheme();
+  const toggleTheme = () =>
+    setColorScheme(colorScheme === "dark" ? "light" : "dark");
 
   const [email, setEmail] = useState("cabibbonehuen@gmail.com");
   const [password, setPassword] = useState("AAAAAAAA");
@@ -141,10 +145,25 @@ export default function SignupScreen() {
   return (
     <ScrollView
       className="flex-1 bg-white dark:bg-black"
-      contentContainerClassName="flex-grow p-6 pb-12 pt-12 gap-8"
+      contentContainerClassName="flex-grow p-6 pb-12 pt-6 gap-8"
       showsVerticalScrollIndicator={false}
     >
       <ToastManager position="top" theme="light" />
+      <View className="flex-row items-center justify-between">
+        <BackHeader />
+        <Button
+          variant="outline"
+          size="icon"
+          className="h-8 w-8 rounded-full border border-black/15 dark:border-white/20 bg-white dark:bg-neutral-900"
+          onPress={toggleTheme}
+        >
+          <Feather
+            name={colorScheme === "dark" ? "sun" : "moon"}
+            size={16}
+            color={colorScheme === "dark" ? "#ffffff" : "#000000"}
+          />
+        </Button>
+      </View>
       <View className="gap-3 items-center">
         <Text className="text-4xl font-extrabold text-center dark:text-white">
           Create your account
