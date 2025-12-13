@@ -7,6 +7,8 @@ import { useState } from "react";
 import { Alert, Pressable, View } from "react-native";
 import { Checkbox } from "./ui/checkbox";
 
+const DESCRIPTION_CHAR_LIMIT = 100;
+
 interface TaskCardProps {
   id: string;
   title: string;
@@ -47,11 +49,18 @@ export default function TaskCard({
   onPress,
 }: TaskCardProps) {
   const [checked, setChecked] = useState(finished);
+  const [expanded, setExpanded] = useState(false);
   const { colorScheme } = useColorScheme();
   const boxBg = colorScheme === "dark" ? "bg-black" : "bg-white";
   const indicatorColor = colorScheme === "dark" ? "bg-white" : "bg-black";
   const iconColor = colorScheme === "dark" ? "text-black" : "text-white";
   const metaIconColor = colorScheme === "dark" ? "#9ca3af" : "#6b7280";
+
+  const isDescriptionLong = description.length > DESCRIPTION_CHAR_LIMIT;
+  const displayDescription = expanded
+    ? description
+    : description.slice(0, DESCRIPTION_CHAR_LIMIT) +
+      (isDescriptionLong ? "..." : "");
 
   const handleCheckedChange = (newChecked: boolean) => {
     const previousChecked = checked;
@@ -65,6 +74,10 @@ export default function TaskCard({
         err instanceof Error ? err.message : "Unable to update task.";
       Alert.alert("Update failed", message);
     });
+  };
+
+  const toggleExpanded = () => {
+    setExpanded((prev) => !prev);
   };
 
   return (
@@ -92,12 +105,25 @@ export default function TaskCard({
           <Text className="text-lg font-semibold text-black dark:text-white">
             {title}
           </Text>
-          <Text
-            className="text-sm text-black/70 dark:text-white/70"
-            numberOfLines={2}
-          >
-            {description}
+          <Text className="text-sm text-black/70 dark:text-white/70">
+            {displayDescription}
           </Text>
+          {isDescriptionLong && (
+            <Pressable
+              onPress={toggleExpanded}
+              hitSlop={8}
+              className="flex-row items-center gap-1 mt-1"
+            >
+              <Text className="text-xs font-semibold text-black/70 dark:text-white/70">
+                {expanded ? "See Less" : "See More"}
+              </Text>
+              <Feather
+                name={expanded ? "chevron-up" : "chevron-down"}
+                size={14}
+                color={colorScheme === "dark" ? "#b3b3b3" : "#525252"}
+              />
+            </Pressable>
+          )}
         </View>
         <View className="flex-row items-center gap-4">
           <View className="flex-row items-center gap-1">

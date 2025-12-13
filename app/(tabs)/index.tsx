@@ -125,13 +125,15 @@ export default function Index() {
         <View className="flex-row items-center gap-3">
           <Button
             variant="outline"
-            size="sm"
-            className="h-8 px-3 rounded-full border border-black/15 dark:border-white/20 bg-white dark:bg-neutral-900"
+            size="icon"
+            className="h-8 w-8 rounded-full border border-black/15 dark:border-white/20 bg-white dark:bg-neutral-900"
             onPress={handleLogout}
           >
-            <Text className="text-xs font-semibold dark:text-white">
-              Logout
-            </Text>
+            <Feather
+              name="log-out"
+              size={16}
+              color={colorScheme === "dark" ? "#ffffff" : "#000000"}
+            />
           </Button>
           <Button
             variant="outline"
@@ -141,6 +143,18 @@ export default function Index() {
           >
             <Feather
               name={colorScheme === "dark" ? "sun" : "moon"}
+              size={16}
+              color={colorScheme === "dark" ? "#ffffff" : "#000000"}
+            />
+          </Button>
+          <Button
+            variant="outline"
+            size="icon"
+            className="h-8 w-8 rounded-full border border-black/15 dark:border-white/20 bg-white dark:bg-neutral-900"
+            onPress={() => router.push("/user")}
+          >
+            <Feather
+              name="user"
               size={16}
               color={colorScheme === "dark" ? "#ffffff" : "#000000"}
             />

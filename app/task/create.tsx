@@ -289,7 +289,6 @@ export default function CreateTask() {
         alarm_time: alarmTimeISO,
         frecuency: frequency,
       });
-      Toast.success("Task created", "top", undefined, undefined, true);
       router.replace("/");
     } catch (err) {
       const message =

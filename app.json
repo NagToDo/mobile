@@ -41,7 +41,17 @@
           }
         }
       ],
-      "expo-sqlite"
+      "expo-sqlite",
+      [
+        "expo-notifications",
+        {
+          "icon": "./assets/images/logo.jpg",
+          "color": "#ffffff",
+          "defaultChannel": "default",
+          "sounds": [],
+          "enableBackgroundRemoteNotifications": false
+        }
+      ]
     ],
     "experiments": {
       "typedRoutes": true,
