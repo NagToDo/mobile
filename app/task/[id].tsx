@@ -1,6 +1,14 @@
 import { deleteTask, getTask, updateTask } from "@/api/tasks";
 import { Button } from "@/components/ui/button";
 import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import {
   Select,
   SelectContent,
   SelectGroup,
@@ -17,7 +25,6 @@ import { useColorScheme } from "nativewind";
 import { useEffect, useState } from "react";
 import {
   ActivityIndicator,
-  Alert,
   Modal,
   Pressable,
   ScrollView,
@@ -49,6 +56,9 @@ export default function TaskDetail() {
   const [descriptionError, setDescriptionError] = useState(false);
   const [alarmError, setAlarmError] = useState(false);
   const [dateError, setDateError] = useState(false);
+
+  // Delete confirmation dialog state
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
 
   // Date modal state
   const [dateModalVisible, setDateModalVisible] = useState(false);
@@ -206,32 +216,24 @@ export default function TaskDetail() {
   };
 
   const handleDelete = () => {
-    Alert.alert(
-      "Delete Task",
-      "Are you sure you want to delete this task? This action cannot be undone.",
-      [
-        { text: "Cancel", style: "cancel" },
-        {
-          text: "Delete",
-          style: "destructive",
-          onPress: async () => {
-            if (!id) return;
-            setDeleting(true);
-            try {
-              await deleteTask(id);
-              Toast.success("Task deleted", "top", undefined, undefined, true);
-              router.replace("/");
-            } catch (err) {
-              const message =
-                err instanceof Error ? err.message : "Unable to delete task.";
-              Toast.error(message, "top", undefined, undefined, true);
-            } finally {
-              setDeleting(false);
-            }
-          },
-        },
-      ],
-    );
+    setDeleteDialogOpen(true);
+  };
+
+  const confirmDelete = async () => {
+    if (!id) return;
+    setDeleting(true);
+    try {
+      await deleteTask(id);
+      setDeleteDialogOpen(false);
+      Toast.success("Task deleted", "top", undefined, undefined, true);
+      router.replace("/");
+    } catch (err) {
+      const message =
+        err instanceof Error ? err.message : "Unable to delete task.";
+      Toast.error(message, "top", undefined, undefined, true);
+    } finally {
+      setDeleting(false);
+    }
   };
 
   if (loading) {
@@ -572,6 +574,40 @@ export default function TaskDetail() {
           <PortalHost name="dateModalPortal" />
         </View>
       </Modal>
+
+      <Dialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+        <DialogContent className="max-w-[280px] bg-white dark:bg-neutral-900 border border-black/10 dark:border-white/20 rounded-2xl p-5">
+          <DialogHeader className="gap-2">
+            <DialogTitle className="text-base">Delete Task</DialogTitle>
+            <DialogDescription className="text-sm">
+              Are you sure you want to delete this task? This action cannot be
+              undone.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter className="flex-row gap-3 mt-2">
+            <Button
+              variant="outline"
+              className="flex-1 h-11 rounded-xl"
+              onPress={() => setDeleteDialogOpen(false)}
+              disabled={deleting}
+            >
+              <Text className="font-semibold">Cancel</Text>
+            </Button>
+            <Button
+              variant="destructive"
+              className="flex-1 h-11 rounded-xl"
+              onPress={confirmDelete}
+              disabled={deleting}
+            >
+              {deleting ? (
+                <ActivityIndicator color="#fff" size="small" />
+              ) : (
+                <Text className="font-semibold text-white">Delete</Text>
+              )}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </ScrollView>
   );
 }

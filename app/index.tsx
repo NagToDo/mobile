@@ -222,6 +222,9 @@ export default function Index() {
               title={task.name || "Untitled task"}
               description={task.description || "No description provided."}
               finished={task.finished}
+              alarmTime={task.alarm_time}
+              frequency={task.frecuency}
+              alarmInterval={task.alarm_interval}
               onFinishedChange={(taskId, finished) => {
                 setTasks((prev) =>
                   prev.map((t) => (t.id === taskId ? { ...t, finished } : t)),
