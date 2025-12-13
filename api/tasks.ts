@@ -4,9 +4,11 @@ export type Task = {
   id: string;
   name: string;
   user_id: string;
-  description: string | null;
-  alarm_interval: number | null;
+  description: string;
+  alarm_interval: number;
   created_at: string;
+  alarm_time: string;
+  frecuency: string;
 };
 
 export const getTasks = async () => {
@@ -32,8 +34,10 @@ export const getTasks = async () => {
 
 export const createTask = async (task: {
   name: string;
-  description?: string;
-  alarm_interval?: number | null;
+  description: string;
+  alarm_interval: number;
+  alarm_time: string;
+  frecuency: string;
 }) => {
   const { data: sessionData, error: sessionError } =
     await client.auth.getSession();
@@ -45,8 +49,10 @@ export const createTask = async (task: {
     .from("tasks")
     .insert({
       name: task.name,
-      description: task.description ?? null,
-      alarm_interval: task.alarm_interval ?? null,
+      description: task.description,
+      alarm_interval: task.alarm_interval,
+      alarm_time: task.alarm_time,
+      frecuency: task.frecuency,
       user_id: userId,
     })
     .select()

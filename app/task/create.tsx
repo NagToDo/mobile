@@ -174,14 +174,14 @@ export default function CreateTask() {
   // const [draftIcon, setDraftIcon] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
   const [titleError, setTitleError] = useState(false);
+  const [descriptionError, setDescriptionError] = useState(false);
   const [alarmError, setAlarmError] = useState(false);
+  const [dateError, setDateError] = useState(false);
 
   // Date modal state
   const [dateModalVisible, setDateModalVisible] = useState(false);
   const [frequency, setFrequency] = useState<string>("single");
-  const [selectedDate, setSelectedDate] = useState<string>(
-    new Date().toISOString().split("T")[0],
-  );
+  const [selectedDate, setSelectedDate] = useState<string | null>(null);
   const [selectedTime, setSelectedTime] = useState<Date>(() => {
     const now = new Date();
     now.setSeconds(0, 0);
@@ -204,6 +204,7 @@ export default function CreateTask() {
 
   const getDateButtonLabel = () => {
     if (frequency === "daily") return "Repeat daily";
+    if (!selectedDate) return "Select date";
     if (frequency === "weekly") return `Every week`;
     if (frequency === "monthly") return `Every month`;
     // Single day - show the date
@@ -231,6 +232,7 @@ export default function CreateTask() {
 
   const handleSave = async () => {
     const trimmedTitle = title.trim();
+    const trimmedDescription = description.trim();
     const missingFields: string[] = [];
 
     if (!trimmedTitle) {
@@ -238,9 +240,20 @@ export default function CreateTask() {
       missingFields.push("Title");
     }
 
+    if (!trimmedDescription) {
+      setDescriptionError(true);
+      missingFields.push("Description");
+    }
+
     if (alarmFrequency === null) {
       setAlarmError(true);
       missingFields.push("Alarm interval");
+    }
+
+    // Date is required for non-daily frequencies
+    if (frequency !== "daily" && !selectedDate) {
+      setDateError(true);
+      missingFields.push("Date");
     }
 
     if (missingFields.length) {
@@ -256,10 +269,25 @@ export default function CreateTask() {
 
     setSaving(true);
     try {
+      // Combine selectedDate and selectedTime into a single timestamp
+      // For daily frequency, use today's date as base
+      const baseDateStr =
+        selectedDate || new Date().toISOString().split("T")[0];
+      const dateObj = new Date(baseDateStr);
+      dateObj.setHours(
+        selectedTime.getHours(),
+        selectedTime.getMinutes(),
+        0,
+        0,
+      );
+      const alarmTimeISO = dateObj.toISOString();
+
       await createTask({
         name: trimmedTitle,
-        description: description.trim() || undefined,
-        alarm_interval: alarmFrequency ?? null,
+        description: trimmedDescription,
+        alarm_interval: alarmFrequency!,
+        alarm_time: alarmTimeISO,
+        frecuency: frequency,
       });
       Toast.success("Task created", "top", undefined, undefined, true);
       router.replace("/");
@@ -315,13 +343,17 @@ export default function CreateTask() {
         </Text>
         <TextInput
           value={description}
-          onChangeText={setDescription}
+          onChangeText={(text) => {
+            setDescription(text);
+            if (descriptionError) setDescriptionError(false);
+          }}
           multiline
           numberOfLines={4}
           textAlignVertical="top"
           placeholder="Add a note or steps you want to remember"
           placeholderTextColor="#9ca3af"
           className="w-full min-h-28 rounded-xl border border-black/10 dark:border-white/15 bg-white dark:bg-neutral-900 px-4 py-3 text-base dark:text-white"
+          style={descriptionError ? { borderColor: "#ef4444" } : undefined}
         />
       </View>
 
@@ -389,6 +421,7 @@ export default function CreateTask() {
           variant="outline"
           className="h-12 w-full rounded-xl border border-black/10 dark:border-white/15 flex-row items-center justify-center gap-2 bg-white dark:bg-neutral-900"
           onPress={openDateModal}
+          style={dateError ? { borderColor: "#ef4444" } : undefined}
         >
           <Feather name="calendar" size={18} color={iconColor} />
           <Text className="text-sm font-semibold dark:text-white">
@@ -661,6 +694,10 @@ export default function CreateTask() {
                 onValueChange={(option) => {
                   if (option) {
                     setFrequency(option.value);
+                    // Clear date error if switching to daily (date not required)
+                    if (option.value === "daily" && dateError) {
+                      setDateError(false);
+                    }
                   }
                 }}
               >
@@ -692,17 +729,22 @@ export default function CreateTask() {
                 </Text>
                 <View className="rounded-xl overflow-hidden border border-black/10 dark:border-white/15">
                   <Calendar
-                    current={selectedDate}
+                    current={selectedDate || undefined}
                     onDayPress={(day: { dateString: string }) => {
                       setSelectedDate(day.dateString);
+                      if (dateError) setDateError(false);
                     }}
-                    markedDates={{
-                      [selectedDate]: {
-                        selected: true,
-                        selectedColor:
-                          colorScheme === "dark" ? "#ffffff" : "#000000",
-                      },
-                    }}
+                    markedDates={
+                      selectedDate
+                        ? {
+                            [selectedDate]: {
+                              selected: true,
+                              selectedColor:
+                                colorScheme === "dark" ? "#ffffff" : "#000000",
+                            },
+                          }
+                        : {}
+                    }
                     theme={{
                       backgroundColor:
                         colorScheme === "dark" ? "#0a0a0a" : "#ffffff",
