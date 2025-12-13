@@ -218,8 +218,18 @@ export default function Index() {
           filteredTasks.map((task) => (
             <TaskCard
               key={task.id}
+              id={task.id}
               title={task.name || "Untitled task"}
               description={task.description || "No description provided."}
+              finished={task.finished}
+              onFinishedChange={(taskId, finished) => {
+                setTasks((prev) =>
+                  prev.map((t) => (t.id === taskId ? { ...t, finished } : t)),
+                );
+              }}
+              onPress={(taskId) =>
+                router.push({ pathname: "/task/[id]", params: { id: taskId } })
+              }
             />
           ))}
       </ScrollView>
