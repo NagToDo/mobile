@@ -2,7 +2,9 @@ import { Button } from "@/components/ui/button";
 import {
   Select,
   SelectContent,
+  SelectGroup,
   SelectItem,
+  SelectSeparator,
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
@@ -14,11 +16,13 @@ import {
   Pressable,
   ScrollView,
   TextInput,
+  useWindowDimensions,
   View,
 } from "react-native";
 // import { cn } from "@/lib/utils";
 import { createTask } from "@/api/tasks";
 import Feather from "@expo/vector-icons/Feather";
+import { PortalHost } from "@rn-primitives/portal";
 import { useRouter } from "expo-router";
 import { useColorScheme } from "nativewind";
 import { Calendar } from "react-native-calendars";
@@ -150,6 +154,7 @@ import ToastManager, { Toast } from "toastify-react-native";
 
 export default function CreateTask() {
   const { colorScheme } = useColorScheme();
+  const { width: windowWidth } = useWindowDimensions();
   const iconColor = colorScheme === "dark" ? "#fff" : "#000";
   const router = useRouter();
 
@@ -190,12 +195,6 @@ export default function CreateTask() {
     { value: "weekly", label: "Every Week" },
     { value: "monthly", label: "Every Month" },
   ];
-
-  const getFrequencyOption = (value: string) => {
-    return (
-      frequencyOptions.find((opt) => opt.value === value) || frequencyOptions[1]
-    );
-  };
 
   const openAlarmModal = () => setAlarmModalVisible(true);
   const closeAlarmModal = () => setAlarmModalVisible(false);
@@ -653,30 +652,35 @@ export default function CreateTask() {
                 Frequency
               </Text>
               <Select
-                value={getFrequencyOption(frequency)}
+                value={{
+                  value: frequency,
+                  label:
+                    frequencyOptions.find((opt) => opt.value === frequency)
+                      ?.label || "Single Day",
+                }}
                 onValueChange={(option) => {
-                  if (
-                    option &&
-                    typeof option === "object" &&
-                    "value" in option
-                  ) {
+                  if (option) {
                     setFrequency(option.value);
                   }
                 }}
               >
-                <SelectTrigger className="w-full h-12 rounded-xl border border-black/10 dark:border-white/15 bg-white dark:bg-neutral-900">
+                <SelectTrigger className="h-12 w-full rounded-xl border border-black/10 dark:border-white/15 bg-white dark:bg-neutral-900">
                   <SelectValue placeholder="Select frequency" />
                 </SelectTrigger>
-                <SelectContent>
-                  {frequencyOptions.map((option) => (
-                    <SelectItem
-                      key={option.value}
-                      label={option.label}
-                      value={option.value}
-                    >
-                      {option.label}
-                    </SelectItem>
-                  ))}
+                <SelectContent
+                  portalHost="dateModalPortal"
+                  style={{ width: windowWidth - 48 }}
+                >
+                  <SelectGroup className="w-full">
+                    {frequencyOptions.map((option, index) => (
+                      <View key={option.value}>
+                        {index > 0 && <SelectSeparator />}
+                        <SelectItem value={option.value} label={option.label}>
+                          {option.label}
+                        </SelectItem>
+                      </View>
+                    ))}
+                  </SelectGroup>
                 </SelectContent>
               </Select>
             </View>
@@ -762,6 +766,7 @@ export default function CreateTask() {
               </Text>
             </Button>
           </View>
+          <PortalHost name="dateModalPortal" />
         </View>
       </Modal>
     </ScrollView>
