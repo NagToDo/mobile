@@ -383,7 +383,12 @@ export default function CreateTask() {
       */}
 
       <View className="gap-3">
-        <Text className="text-lg font-semibold dark:text-white">Date</Text>
+        <View className="gap-1">
+          <Text className="text-lg font-semibold dark:text-white">Date</Text>
+          <Text className="text-xs text-black/50 dark:text-white/60">
+            Choose when to schedule this task.
+          </Text>
+        </View>
         <Button
           variant="outline"
           className="h-12 w-full rounded-xl border border-black/10 dark:border-white/15 flex-row items-center justify-center gap-2 bg-white dark:bg-neutral-900"
@@ -394,13 +399,15 @@ export default function CreateTask() {
             {getDateButtonLabel()}
           </Text>
         </Button>
-        <Text className="text-xs text-black/50 dark:text-white/60">
-          Choose when to schedule this task.
-        </Text>
       </View>
 
       <View className="gap-3">
-        <Text className="text-lg font-semibold dark:text-white">Alarm</Text>
+        <View className="gap-1">
+          <Text className="text-lg font-semibold dark:text-white">Alarm</Text>
+          <Text className="text-xs text-black/50 dark:text-white/60">
+            Choose how often to send the reminder.
+          </Text>
+        </View>
         <Button
           variant="outline"
           className="h-12 w-full rounded-xl border border-black/10 dark:border-white/15 flex-row items-center justify-center gap-2 bg-white dark:bg-neutral-900"
@@ -414,9 +421,6 @@ export default function CreateTask() {
               : "Set alarm interval"}
           </Text>
         </Button>
-        <Text className="text-xs text-black/50 dark:text-white/60">
-          Choose how often to send the reminder.
-        </Text>
       </View>
 
       <Button
@@ -714,7 +718,8 @@ export default function CreateTask() {
                         colorScheme === "dark" ? "#ffffff" : "#000000",
                       selectedDayTextColor:
                         colorScheme === "dark" ? "#000000" : "#ffffff",
-                      todayTextColor: "#10b981",
+                      todayTextColor:
+                        colorScheme === "dark" ? "#ffffff" : "#000000",
                       dayTextColor:
                         colorScheme === "dark" ? "#ffffff" : "#000000",
                       textDisabledColor:
