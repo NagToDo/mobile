@@ -191,7 +191,7 @@ export default function AuthScreen() {
             <TextInput
               value={password}
               onChangeText={setPassword}
-              placeholder="••••••••"
+              placeholder="********"
               placeholderTextColor={placeholderColor}
               className="w-full rounded-xl border border-black/10 dark:border-white/15 bg-white dark:bg-neutral-900 px-4 py-3 text-base dark:text-white"
               secureTextEntry
