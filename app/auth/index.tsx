@@ -173,6 +173,7 @@ export default function AuthScreen() {
               Email
             </Text>
             <TextInput
+              key={`email-${colorScheme}`}
               value={email}
               onChangeText={setEmail}
               placeholder="you@example.com"
@@ -189,6 +190,7 @@ export default function AuthScreen() {
               Password
             </Text>
             <TextInput
+              key={`password-${colorScheme}`}
               value={password}
               onChangeText={setPassword}
               placeholder="********"

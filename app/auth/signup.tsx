@@ -178,6 +178,7 @@ export default function SignupScreen() {
               Email
             </Text>
             <TextInput
+              key={`email-${colorScheme}`}
               value={email}
               onChangeText={setEmail}
               placeholder="you@example.com"
@@ -194,6 +195,7 @@ export default function SignupScreen() {
               Password
             </Text>
             <TextInput
+              key={`password-${colorScheme}`}
               value={password}
               onChangeText={setPassword}
               placeholder="********"
@@ -208,6 +210,7 @@ export default function SignupScreen() {
               Confirm password
             </Text>
             <TextInput
+              key={`confirmPassword-${colorScheme}`}
               value={confirmPassword}
               onChangeText={setConfirmPassword}
               placeholder="Repeat password"
