@@ -11,7 +11,7 @@ import Entypo from "@expo/vector-icons/Entypo";
 import Feather from "@expo/vector-icons/Feather";
 import type { Session } from "@supabase/supabase-js";
 import { Redirect, useRouter } from "expo-router";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   Alert,
   RefreshControl,
@@ -28,6 +28,11 @@ export default function Index() {
   const [session, setSession] = useState<Session | null>(null);
   const [sessionLoading, setSessionLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
+  const [syncing, setSyncing] = useState(false);
+  const [syncCooldown, setSyncCooldown] = useState(0);
+  const cooldownRef = useRef<ReturnType<typeof setInterval> | null>(null);
+
+  const SYNC_COOLDOWN_SECONDS = 5;
 
   const { isReady: dbReady } = useDatabase();
   const {
@@ -37,7 +42,7 @@ export default function Index() {
     updateTaskFinished,
     refresh: fetchTasks,
   } = useTasks();
-  const { startSync, stopSync } = useSyncStatus();
+  const { startSync, stopSync, forceSync, isSyncing } = useSyncStatus();
 
   const tasksError = tasksErrorObj?.message ?? null;
 
@@ -90,6 +95,15 @@ export default function Index() {
     };
   }, [session, dbReady, startSync, stopSync]);
 
+  // Cleanup cooldown interval on unmount
+  useEffect(() => {
+    return () => {
+      if (cooldownRef.current) {
+        clearInterval(cooldownRef.current);
+      }
+    };
+  }, []);
+
   const filteredTasks = useMemo(() => {
     const q = query.trim().toLowerCase();
     if (!q) return tasks;
@@ -102,9 +116,41 @@ export default function Index() {
 
   const onRefresh = useCallback(async () => {
     setRefreshing(true);
+    await forceSync();
     await fetchTasks();
     setRefreshing(false);
-  }, [fetchTasks]);
+  }, [fetchTasks, forceSync]);
+
+  const startCooldown = useCallback(() => {
+    setSyncCooldown(SYNC_COOLDOWN_SECONDS);
+    if (cooldownRef.current) {
+      clearInterval(cooldownRef.current);
+    }
+    cooldownRef.current = setInterval(() => {
+      setSyncCooldown((prev) => {
+        if (prev <= 1) {
+          if (cooldownRef.current) {
+            clearInterval(cooldownRef.current);
+            cooldownRef.current = null;
+          }
+          return 0;
+        }
+        return prev - 1;
+      });
+    }, 1000);
+  }, []);
+
+  const handleSync = useCallback(async () => {
+    if (syncing || syncCooldown > 0) return;
+    setSyncing(true);
+    try {
+      await forceSync();
+      await fetchTasks();
+    } finally {
+      setSyncing(false);
+      startCooldown();
+    }
+  }, [forceSync, fetchTasks, syncing, syncCooldown, startCooldown]);
 
   const handleFinishedChange = useCallback(
     async (id: string, finished: boolean) => {
@@ -124,6 +170,28 @@ export default function Index() {
       <View className="flex-row items-center justify-between mt-2">
         <Text className="text-2xl font-bold dark:text-white">My Tasks</Text>
         <View className="flex-row items-center gap-3">
+          <Button
+            variant="outline"
+            size="icon"
+            className="h-8 w-8 rounded-full border border-black/15 dark:border-white/20 bg-white dark:bg-neutral-900"
+            onPress={handleSync}
+            disabled={syncing || syncCooldown > 0}
+          >
+            {syncing ? (
+              <Text className="text-xs font-bold" style={{ color: icon.muted }}>
+                ...
+              </Text>
+            ) : syncCooldown > 0 ? (
+              <Text
+                className="text-xs font-medium"
+                style={{ color: icon.muted }}
+              >
+                {syncCooldown}
+              </Text>
+            ) : (
+              <Feather name="refresh-cw" size={16} color={icon.default} />
+            )}
+          </Button>
           <Button
             variant="outline"
             size="icon"
