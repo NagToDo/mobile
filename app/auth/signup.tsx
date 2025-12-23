@@ -1,9 +1,12 @@
+import supabase from "@/api/client";
+import { Button } from "@/components/ui/button";
+import { Text } from "@/components/ui/text";
+import { useThemeColors } from "@/lib/colors";
 import AntDesign from "@expo/vector-icons/AntDesign";
 import Feather from "@expo/vector-icons/Feather";
 import type { Session } from "@supabase/supabase-js";
 import * as Linking from "expo-linking";
 import { Redirect, useRouter } from "expo-router";
-import { useColorScheme } from "nativewind";
 import { useEffect, useState } from "react";
 import {
   ActivityIndicator,
@@ -14,15 +17,10 @@ import {
 } from "react-native";
 import ToastManager, { Toast } from "toastify-react-native";
 
-import supabase from "@/api/client";
-import { Button } from "@/components/ui/button";
-import { Text } from "@/components/ui/text";
-
 export default function SignupScreen() {
   const router = useRouter();
-  const { colorScheme, setColorScheme } = useColorScheme();
-  const toggleTheme = () =>
-    setColorScheme(colorScheme === "dark" ? "light" : "dark");
+  const { colorScheme, toggleColorScheme, input, icon, primary } =
+    useThemeColors();
 
   const [email, setEmail] = useState("cabibbonehuen@gmail.com");
   const [password, setPassword] = useState("AAAAAAAA");
@@ -31,8 +29,6 @@ export default function SignupScreen() {
   const [googleLoading, setGoogleLoading] = useState(false);
   const [session, setSession] = useState<Session | null>(null);
   const [sessionLoading, setSessionLoading] = useState(true);
-
-  const placeholderColor = colorScheme === "dark" ? "#9ca3af" : "#9ca3af";
 
   useEffect(() => {
     let isMounted = true;
@@ -153,12 +149,12 @@ export default function SignupScreen() {
           variant="outline"
           size="icon"
           className="h-8 w-8 rounded-full border border-black/15 dark:border-white/20 bg-white dark:bg-neutral-900"
-          onPress={toggleTheme}
+          onPress={toggleColorScheme}
         >
           <Feather
             name={colorScheme === "dark" ? "sun" : "moon"}
             size={16}
-            color={colorScheme === "dark" ? "#ffffff" : "#000000"}
+            color={icon.default}
           />
         </Button>
       </View>
@@ -182,7 +178,7 @@ export default function SignupScreen() {
               value={email}
               onChangeText={setEmail}
               placeholder="you@example.com"
-              placeholderTextColor={placeholderColor}
+              placeholderTextColor={input.placeholder}
               className="w-full rounded-xl border border-black/10 dark:border-white/15 bg-white dark:bg-neutral-900 px-4 py-3 text-base dark:text-white"
               keyboardType="email-address"
               autoCapitalize="none"
@@ -199,7 +195,7 @@ export default function SignupScreen() {
               value={password}
               onChangeText={setPassword}
               placeholder="********"
-              placeholderTextColor={placeholderColor}
+              placeholderTextColor={input.placeholder}
               className="w-full rounded-xl border border-black/10 dark:border-white/15 bg-white dark:bg-neutral-900 px-4 py-3 text-base dark:text-white"
               secureTextEntry
             />
@@ -214,7 +210,7 @@ export default function SignupScreen() {
               value={confirmPassword}
               onChangeText={setConfirmPassword}
               placeholder="Repeat password"
-              placeholderTextColor={placeholderColor}
+              placeholderTextColor={input.placeholder}
               className="w-full rounded-xl border border-black/10 dark:border-white/15 bg-white dark:bg-neutral-900 px-4 py-3 text-base dark:text-white"
               secureTextEntry
             />
@@ -227,9 +223,7 @@ export default function SignupScreen() {
               disabled={loading}
             >
               {loading ? (
-                <ActivityIndicator
-                  color={colorScheme === "dark" ? "#000" : "#fff"}
-                />
+                <ActivityIndicator color={primary} />
               ) : (
                 <Text className="text-base font-semibold text-white dark:text-black">
                   Create account
@@ -265,11 +259,7 @@ export default function SignupScreen() {
             <ActivityIndicator />
           ) : (
             <>
-              <AntDesign
-                name="google"
-                size={18}
-                color={colorScheme === "dark" ? "#fff" : "#000"}
-              />
+              <AntDesign name="google" size={18} color={icon.default} />
               <Text className="text-base font-semibold text-black dark:text-white">
                 Continue with Google
               </Text>

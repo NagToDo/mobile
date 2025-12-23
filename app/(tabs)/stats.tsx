@@ -1,4 +1,5 @@
 import { Text } from "@/components/ui/text";
+import { useColors } from "@/lib/colors";
 import Feather from "@expo/vector-icons/Feather";
 import { ScrollView, View } from "react-native";
 
@@ -55,6 +56,8 @@ function FrequencyBar({ label, percentage, count, color }: FrequencyBarProps) {
 }
 
 export default function StatsScreen() {
+  const colors = useColors();
+
   return (
     <View className="flex-1 bg-white dark:bg-black">
       <ScrollView
@@ -72,23 +75,28 @@ export default function StatsScreen() {
             icon="list"
             label="Total Tasks"
             value={12}
-            color="#3b82f6"
+            color={colors.chart.blue}
           />
           <StatCard
             icon="check-circle"
             label="Completed"
             value={8}
-            color="#10b981"
+            color={colors.chart.green}
           />
         </View>
 
         <View className="flex-row gap-3 mb-6">
-          <StatCard icon="clock" label="Pending" value={4} color="#f59e0b" />
+          <StatCard
+            icon="clock"
+            label="Pending"
+            value={4}
+            color={colors.chart.amber}
+          />
           <StatCard
             icon="trending-up"
             label="Completion Rate"
             value="67%"
-            color="#8b5cf6"
+            color={colors.chart.purple}
           />
         </View>
 
@@ -102,25 +110,25 @@ export default function StatsScreen() {
             label="Daily"
             percentage={40}
             count={5}
-            color="#10b981"
+            color={colors.chart.green}
           />
           <FrequencyBar
             label="Weekly"
             percentage={25}
             count={3}
-            color="#3b82f6"
+            color={colors.chart.blue}
           />
           <FrequencyBar
             label="Monthly"
             percentage={17}
             count={2}
-            color="#8b5cf6"
+            color={colors.chart.purple}
           />
           <FrequencyBar
             label="Once"
             percentage={17}
             count={2}
-            color="#f59e0b"
+            color={colors.chart.amber}
           />
         </View>
 
@@ -131,19 +139,19 @@ export default function StatsScreen() {
           </Text>
           <View className="gap-2">
             <View className="flex-row items-center gap-2">
-              <Feather name="award" size={16} color="#10b981" />
+              <Feather name="award" size={16} color={colors.chart.green} />
               <Text className="text-sm text-black/80 dark:text-white/80">
                 You've completed 8 tasks!
               </Text>
             </View>
             <View className="flex-row items-center gap-2">
-              <Feather name="target" size={16} color="#f59e0b" />
+              <Feather name="target" size={16} color={colors.chart.amber} />
               <Text className="text-sm text-black/80 dark:text-white/80">
                 4 tasks waiting for you
               </Text>
             </View>
             <View className="flex-row items-center gap-2">
-              <Feather name="star" size={16} color="#8b5cf6" />
+              <Feather name="star" size={16} color={colors.chart.purple} />
               <Text className="text-sm text-black/80 dark:text-white/80">
                 Great progress! Over half your tasks are done
               </Text>

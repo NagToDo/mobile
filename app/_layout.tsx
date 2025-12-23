@@ -1,3 +1,4 @@
+import { ThemeProvider } from "@/lib/colors";
 import { notificationService } from "@/services/notification";
 import { PortalHost } from "@rn-primitives/portal";
 import { Stack } from "expo-router";
@@ -9,7 +10,7 @@ export default function RootLayout() {
     notificationService.initialize();
   }, []);
   return (
-    <>
+    <ThemeProvider>
       <Stack
         screenOptions={{
           headerShown: false,
@@ -46,6 +47,6 @@ export default function RootLayout() {
         />
       </Stack>
       <PortalHost />
-    </>
+    </ThemeProvider>
   );
 }

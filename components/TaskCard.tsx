@@ -1,8 +1,8 @@
 import { updateTaskFinished } from "@/api/tasks";
 import { Text } from "@/components/ui/text";
+import { useColors } from "@/lib/colors";
 import { cn } from "@/lib/utils";
 import Feather from "@expo/vector-icons/Feather";
-import { useColorScheme } from "nativewind";
 import { useState } from "react";
 import { Alert, Pressable, View } from "react-native";
 import { Checkbox } from "./ui/checkbox";
@@ -50,11 +50,13 @@ export default function TaskCard({
 }: TaskCardProps) {
   const [checked, setChecked] = useState(finished);
   const [expanded, setExpanded] = useState(false);
-  const { colorScheme } = useColorScheme();
-  const boxBg = colorScheme === "dark" ? "bg-black" : "bg-white";
-  const indicatorColor = colorScheme === "dark" ? "bg-white" : "bg-black";
-  const iconColor = colorScheme === "dark" ? "text-black" : "text-white";
-  const metaIconColor = colorScheme === "dark" ? "#9ca3af" : "#6b7280";
+  const colors = useColors();
+
+  // Determine checkbox colors based on background
+  const isDark = colors.background === "#000000";
+  const boxBg = isDark ? "bg-black" : "bg-white";
+  const indicatorColor = isDark ? "bg-white" : "bg-black";
+  const iconColor = isDark ? "text-black" : "text-white";
 
   const isDescriptionLong = description.length > DESCRIPTION_CHAR_LIMIT;
   const displayDescription = expanded
@@ -120,26 +122,26 @@ export default function TaskCard({
               <Feather
                 name={expanded ? "chevron-up" : "chevron-down"}
                 size={14}
-                color={colorScheme === "dark" ? "#b3b3b3" : "#525252"}
+                color={colors.icon.muted}
               />
             </Pressable>
           )}
         </View>
         <View className="flex-row items-center gap-4">
           <View className="flex-row items-center gap-1">
-            <Feather name="clock" size={12} color={metaIconColor} />
+            <Feather name="clock" size={12} color={colors.icon.muted} />
             <Text className="text-xs text-black/50 dark:text-white/50">
               {formatTime(alarmTime)}
             </Text>
           </View>
           <View className="flex-row items-center gap-1">
-            <Feather name="repeat" size={12} color={metaIconColor} />
+            <Feather name="repeat" size={12} color={colors.icon.muted} />
             <Text className="text-xs text-black/50 dark:text-white/50">
               {frequencyLabels[frequency] || frequency}
             </Text>
           </View>
           <View className="flex-row items-center gap-1">
-            <Feather name="bell" size={12} color={metaIconColor} />
+            <Feather name="bell" size={12} color={colors.icon.muted} />
             <Text className="text-xs text-black/50 dark:text-white/50">
               Every {alarmInterval} min
             </Text>

@@ -1,31 +1,37 @@
+import { ThemeSelector } from "@/components/ThemeSelector";
 import { Text } from "@/components/ui/text";
-import { useColorScheme } from "nativewind";
-import { View } from "react-native";
+import { ScrollView, View } from "react-native";
 
 export default function UserScreen() {
-  const { colorScheme } = useColorScheme();
-
   return (
-    <View className="flex-1 bg-white dark:bg-black px-6 pt-6">
-      <View className="flex-1 items-center justify-center">
-        <Text className="text-2xl font-bold dark:text-white">User page</Text>
-        <Text className="mt-2 text-base text-black/60 dark:text-white/60 text-center">
-          Placeholder screen to preview the highlighted user tab icon.
+    <View className="flex-1 bg-white dark:bg-black">
+      <ScrollView
+        className="flex-1 px-6 pt-6"
+        contentContainerClassName="pb-24"
+        showsVerticalScrollIndicator={false}
+      >
+        <Text className="text-2xl font-bold dark:text-white mb-6">
+          Settings
         </Text>
-        <View
-          className="mt-6 h-24 w-24 rounded-full items-center justify-center"
-          style={{
-            backgroundColor:
-              colorScheme === "dark"
-                ? "rgba(255,255,255,0.06)"
-                : "rgba(0,0,0,0.05)",
-          }}
-        >
-          <Text className="text-sm text-black/50 dark:text-white/70">
-            Empty state
+
+        {/* Theme Settings Section */}
+        <View className="bg-white dark:bg-neutral-900 rounded-2xl p-5 border border-black/5 dark:border-white/10">
+          <Text className="text-lg font-semibold dark:text-white mb-4">
+            Theme
+          </Text>
+          <ThemeSelector />
+        </View>
+
+        {/* Placeholder for future settings */}
+        <View className="bg-white dark:bg-neutral-900 rounded-2xl p-5 border border-black/5 dark:border-white/10 mt-4">
+          <Text className="text-lg font-semibold dark:text-white mb-2">
+            Account
+          </Text>
+          <Text className="text-sm text-black/60 dark:text-white/60">
+            Account settings coming soon...
           </Text>
         </View>
-      </View>
+      </ScrollView>
     </View>
   );
 }

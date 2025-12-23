@@ -1,26 +1,18 @@
 import { Text } from "@/components/ui/text";
+import { useColors } from "@/lib/colors";
 import Entypo from "@expo/vector-icons/Entypo";
 import Feather from "@expo/vector-icons/Feather";
 import { BottomTabBarProps } from "@react-navigation/bottom-tabs";
 import { Tabs, useRouter } from "expo-router";
-import { useColorScheme } from "nativewind";
 import { Pressable, View } from "react-native";
 import "../../global.css";
 
 function CustomTabBar({ state }: BottomTabBarProps) {
-  const { colorScheme } = useColorScheme();
+  const colors = useColors();
   const router = useRouter();
 
   const isFocused = (routeName: string) =>
     state.routes[state.index]?.name === routeName;
-
-  const inactiveColor =
-    colorScheme === "dark" ? "rgba(255,255,255,0.55)" : "rgba(0,0,0,0.6)";
-  const activeColor = colorScheme === "dark" ? "#fff" : "#000";
-  const fabBackground = colorScheme === "dark" ? "#f8fafc" : "#0f172a";
-  const fabIconColor = colorScheme === "dark" ? "#0f172a" : "#f8fafc";
-  const fabBorderColor =
-    colorScheme === "dark" ? "rgba(0,0,0,0.08)" : "rgba(255,255,255,0.25)";
 
   return (
     <View className="bg-white dark:bg-neutral-900 border-t border-black/10 dark:border-white/10">
@@ -31,12 +23,12 @@ function CustomTabBar({ state }: BottomTabBarProps) {
             onPress={() => router.push("/task/create")}
             hitSlop={8}
             style={{
-              backgroundColor: fabBackground,
-              borderColor: fabBorderColor,
+              backgroundColor: colors.fab.background,
+              borderColor: colors.fab.border,
               borderWidth: 2,
             }}
           >
-            <Entypo name="plus" size={26} color={fabIconColor} />
+            <Entypo name="plus" size={26} color={colors.fab.icon} />
           </Pressable>
         </View>
 
@@ -52,12 +44,16 @@ function CustomTabBar({ state }: BottomTabBarProps) {
             <Entypo
               name="home"
               size={22}
-              color={isFocused("index") ? activeColor : inactiveColor}
+              color={
+                isFocused("index") ? colors.tab.active : colors.tab.inactive
+              }
             />
             <Text
               className="text-xs mt-1"
               style={{
-                color: isFocused("index") ? activeColor : inactiveColor,
+                color: isFocused("index")
+                  ? colors.tab.active
+                  : colors.tab.inactive,
               }}
             >
               Home
@@ -77,12 +73,16 @@ function CustomTabBar({ state }: BottomTabBarProps) {
             <Feather
               name="bar-chart-2"
               size={22}
-              color={isFocused("stats") ? activeColor : inactiveColor}
+              color={
+                isFocused("stats") ? colors.tab.active : colors.tab.inactive
+              }
             />
             <Text
               className="text-xs mt-1"
               style={{
-                color: isFocused("stats") ? activeColor : inactiveColor,
+                color: isFocused("stats")
+                  ? colors.tab.active
+                  : colors.tab.inactive,
               }}
             >
               Stats

@@ -4,11 +4,11 @@ import TaskCard from "@/components/TaskCard";
 import TaskCardSkeleton from "@/components/TaskCardSkeleton";
 import { Button } from "@/components/ui/button";
 import { Text } from "@/components/ui/text";
+import { useThemeColors } from "@/lib/colors";
 import Entypo from "@expo/vector-icons/Entypo";
 import Feather from "@expo/vector-icons/Feather";
 import type { Session } from "@supabase/supabase-js";
 import { Redirect, useRouter } from "expo-router";
-import { useColorScheme } from "nativewind";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import {
   Alert,
@@ -20,12 +20,8 @@ import {
 
 export default function Index() {
   const router = useRouter();
-  const { colorScheme, setColorScheme } = useColorScheme();
-
-  const toggleTheme = () => {
-    const newScheme = colorScheme === "dark" ? "light" : "dark";
-    setColorScheme(newScheme);
-  };
+  const { colorScheme, toggleColorScheme, icon, input, foreground } =
+    useThemeColors();
   const [query, setQuery] = useState("");
   const [session, setSession] = useState<Session | null>(null);
   const [sessionLoading, setSessionLoading] = useState(true);
@@ -129,22 +125,18 @@ export default function Index() {
             className="h-8 w-8 rounded-full border border-black/15 dark:border-white/20 bg-white dark:bg-neutral-900"
             onPress={handleLogout}
           >
-            <Feather
-              name="log-out"
-              size={16}
-              color={colorScheme === "dark" ? "#ffffff" : "#000000"}
-            />
+            <Feather name="log-out" size={16} color={icon.default} />
           </Button>
           <Button
             variant="outline"
             size="icon"
             className="h-8 w-8 rounded-full border border-black/15 dark:border-white/20 bg-white dark:bg-neutral-900"
-            onPress={toggleTheme}
+            onPress={toggleColorScheme}
           >
             <Feather
               name={colorScheme === "dark" ? "sun" : "moon"}
               size={16}
-              color={colorScheme === "dark" ? "#ffffff" : "#000000"}
+              color={icon.default}
             />
           </Button>
           <Button
@@ -153,29 +145,19 @@ export default function Index() {
             className="h-8 w-8 rounded-full border border-black/15 dark:border-white/20 bg-white dark:bg-neutral-900"
             onPress={() => router.push("/user")}
           >
-            <Feather
-              name="user"
-              size={16}
-              color={colorScheme === "dark" ? "#ffffff" : "#000000"}
-            />
+            <Feather name="user" size={16} color={icon.default} />
           </Button>
         </View>
       </View>
 
       <View className="flex-row items-center gap-3">
         <View className="flex-row items-center flex-1 rounded-3xl border border-black/10 dark:border-white/20 bg-white dark:bg-neutral-900 px-4 h-12">
-          <Entypo
-            name="magnifying-glass"
-            size={18}
-            color={colorScheme === "dark" ? "#ffffff" : "#000000"}
-          />
+          <Entypo name="magnifying-glass" size={18} color={icon.default} />
           <TextInput
             value={query}
             onChangeText={setQuery}
             placeholder="Search tasks..."
-            placeholderTextColor={
-              colorScheme === "dark" ? "#9ca3af" : "#9ca3af"
-            }
+            placeholderTextColor={input.placeholder}
             className="flex-1 px-3 text-base text-black dark:text-white"
           />
         </View>
@@ -190,8 +172,8 @@ export default function Index() {
           <RefreshControl
             refreshing={refreshing}
             onRefresh={onRefresh}
-            tintColor={colorScheme === "dark" ? "#ffffff" : "#000000"}
-            colors={[colorScheme === "dark" ? "#ffffff" : "#000000"]}
+            tintColor={foreground}
+            colors={[foreground]}
           />
         }
       >

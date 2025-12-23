@@ -41,6 +41,28 @@ module.exports = {
           DEFAULT: "hsl(var(--card))",
           foreground: "hsl(var(--card-foreground))",
         },
+        chart: {
+          blue: "hsl(var(--chart-blue))",
+          green: "hsl(var(--chart-green))",
+          amber: "hsl(var(--chart-amber))",
+          purple: "hsl(var(--chart-purple))",
+          red: "hsl(var(--chart-red))",
+        },
+        icon: {
+          DEFAULT: "hsl(var(--icon-default))",
+          muted: "hsl(var(--icon-muted))",
+          active: "hsl(var(--icon-active))",
+        },
+        tab: {
+          active: "hsl(var(--tab-active))",
+          inactive: "hsl(var(--tab-inactive))",
+          background: "hsl(var(--tab-background))",
+        },
+        fab: {
+          DEFAULT: "hsl(var(--fab-background))",
+          icon: "hsl(var(--fab-icon))",
+          border: "hsl(var(--fab-border))",
+        },
       },
       borderRadius: {
         lg: "var(--radius)",
