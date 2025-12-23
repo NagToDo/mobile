@@ -1,4 +1,3 @@
-import { updateTaskFinished } from "@/api/tasks";
 import { Text } from "@/components/ui/text";
 import { useColors } from "@/lib/colors";
 import { cn } from "@/lib/utils";
@@ -17,7 +16,7 @@ interface TaskCardProps {
   alarmTime: string;
   frequency: string;
   alarmInterval: number;
-  onFinishedChange?: (id: string, finished: boolean) => void;
+  onFinishedChange?: (id: string, finished: boolean) => Promise<void>;
   onPress?: (id: string) => void;
 }
 
@@ -64,18 +63,18 @@ export default function TaskCard({
     : description.slice(0, DESCRIPTION_CHAR_LIMIT) +
       (isDescriptionLong ? "..." : "");
 
-  const handleCheckedChange = (newChecked: boolean) => {
+  const handleCheckedChange = async (newChecked: boolean) => {
     const previousChecked = checked;
     setChecked(newChecked);
-    onFinishedChange?.(id, newChecked);
 
-    updateTaskFinished(id, newChecked).catch((err) => {
+    try {
+      await onFinishedChange?.(id, newChecked);
+    } catch (err) {
       setChecked(previousChecked);
-      onFinishedChange?.(id, previousChecked);
       const message =
         err instanceof Error ? err.message : "Unable to update task.";
       Alert.alert("Update failed", message);
-    });
+    }
   };
 
   const toggleExpanded = () => {

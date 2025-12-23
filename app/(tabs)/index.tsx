@@ -1,9 +1,11 @@
 import supabase from "@/api/client";
-import { getTasks, type Task } from "@/api/tasks";
 import TaskCard from "@/components/TaskCard";
 import TaskCardSkeleton from "@/components/TaskCardSkeleton";
 import { Button } from "@/components/ui/button";
 import { Text } from "@/components/ui/text";
+import { useDatabase } from "@/config/DatabaseProvider";
+import { useTasks } from "@/hooks/useTasks";
+import { useSyncStatus } from "@/hooks/useSyncStatus";
 import { useThemeColors } from "@/lib/colors";
 import Entypo from "@expo/vector-icons/Entypo";
 import Feather from "@expo/vector-icons/Feather";
@@ -25,15 +27,25 @@ export default function Index() {
   const [query, setQuery] = useState("");
   const [session, setSession] = useState<Session | null>(null);
   const [sessionLoading, setSessionLoading] = useState(true);
-  const [tasks, setTasks] = useState<Task[]>([]);
-  const [tasksLoading, setTasksLoading] = useState(true);
-  const [tasksError, setTasksError] = useState<string | null>(null);
   const [refreshing, setRefreshing] = useState(false);
+
+  const { isReady: dbReady } = useDatabase();
+  const {
+    tasks,
+    loading: tasksLoading,
+    error: tasksErrorObj,
+    updateTaskFinished,
+    refresh: fetchTasks,
+  } = useTasks();
+  const { startSync, stopSync } = useSyncStatus();
+
+  const tasksError = tasksErrorObj?.message ?? null;
+
   const handleLogout = async () => {
     try {
+      stopSync();
       await supabase.auth.signOut();
       setSession(null);
-      setTasks([]);
       router.replace("/auth");
     } catch (err) {
       const message =
@@ -41,25 +53,6 @@ export default function Index() {
       Alert.alert("Logout failed", message);
     }
   };
-
-  const fetchTasks = useCallback(async (showLoading: boolean = true) => {
-    if (showLoading) {
-      setTasksLoading(true);
-    }
-    setTasksError(null);
-    try {
-      const data = await getTasks();
-      setTasks(data);
-    } catch (err) {
-      const message =
-        err instanceof Error ? err.message : "Unable to load tasks.";
-      setTasksError(message);
-    } finally {
-      if (showLoading) {
-        setTasksLoading(false);
-      }
-    }
-  }, []);
 
   useEffect(() => {
     let isMounted = true;
@@ -88,6 +81,15 @@ export default function Index() {
     };
   }, []);
 
+  useEffect(() => {
+    if (session && dbReady) {
+      startSync();
+    }
+    return () => {
+      stopSync();
+    };
+  }, [session, dbReady, startSync, stopSync]);
+
   const filteredTasks = useMemo(() => {
     const q = query.trim().toLowerCase();
     if (!q) return tasks;
@@ -98,21 +100,24 @@ export default function Index() {
     );
   }, [query, tasks]);
 
-  useEffect(() => {
-    if (sessionLoading) return;
-    if (!session) return;
-    fetchTasks();
-  }, [fetchTasks, session, sessionLoading]);
-
   const onRefresh = useCallback(async () => {
     setRefreshing(true);
-    await fetchTasks(false);
+    await fetchTasks();
     setRefreshing(false);
   }, [fetchTasks]);
+
+  const handleFinishedChange = useCallback(
+    async (id: string, finished: boolean) => {
+      await updateTaskFinished(id, finished);
+    },
+    [updateTaskFinished],
+  );
 
   if (!sessionLoading && !session) {
     return <Redirect href="/auth" />;
   }
+
+  const showLoading = !dbReady || (tasksLoading && tasks.length === 0);
 
   return (
     <View className="flex-1 p-6 gap-4 bg-white dark:bg-black">
@@ -177,7 +182,7 @@ export default function Index() {
           />
         }
       >
-        {tasksLoading && (
+        {showLoading && (
           <>
             <TaskCardSkeleton />
             <TaskCardSkeleton />
@@ -185,7 +190,7 @@ export default function Index() {
           </>
         )}
 
-        {!tasksLoading && tasksError && (
+        {!showLoading && tasksError && (
           <View className="items-center justify-center py-12">
             <Text className="text-sm text-red-500 text-center">
               {tasksError}
@@ -201,7 +206,7 @@ export default function Index() {
           </View>
         )}
 
-        {!tasksLoading && !tasksError && filteredTasks.length === 0 && (
+        {!showLoading && !tasksError && filteredTasks.length === 0 && (
           <View className="items-center justify-center py-12">
             <Text className="text-sm text-black/70 dark:text-white/70">
               No tasks yet.
@@ -209,7 +214,7 @@ export default function Index() {
           </View>
         )}
 
-        {!tasksLoading &&
+        {!showLoading &&
           !tasksError &&
           filteredTasks.map((task) => (
             <TaskCard
@@ -221,11 +226,7 @@ export default function Index() {
               alarmTime={task.alarm_time}
               frequency={task.frecuency}
               alarmInterval={task.alarm_interval}
-              onFinishedChange={(taskId, finished) => {
-                setTasks((prev) =>
-                  prev.map((t) => (t.id === taskId ? { ...t, finished } : t)),
-                );
-              }}
+              onFinishedChange={handleFinishedChange}
               onPress={(taskId) =>
                 router.push({ pathname: "/task/[id]", params: { id: taskId } })
               }

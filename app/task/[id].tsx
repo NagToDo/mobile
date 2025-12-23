@@ -1,4 +1,3 @@
-import { deleteTask, getTask, updateTask } from "@/api/tasks";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -18,6 +17,8 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Text } from "@/components/ui/text";
+import { useTask } from "@/hooks/useTask";
+import { Frequency } from "@/domain/models/Task";
 import { notificationService } from "@/services/notification";
 import Feather from "@expo/vector-icons/Feather";
 import { PortalHost } from "@rn-primitives/portal";
@@ -44,8 +45,13 @@ export default function TaskDetail() {
   const router = useRouter();
   const { id } = useLocalSearchParams<{ id: string }>();
 
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const {
+    task,
+    loading,
+    error: taskError,
+    updateTask,
+    deleteTask,
+  } = useTask(id || "");
 
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
@@ -57,6 +63,7 @@ export default function TaskDetail() {
   const [descriptionError, setDescriptionError] = useState(false);
   const [alarmError, setAlarmError] = useState(false);
   const [dateError, setDateError] = useState(false);
+  const [initialized, setInitialized] = useState(false);
 
   // Delete confirmation dialog state
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
@@ -86,39 +93,26 @@ export default function TaskDetail() {
     { value: "monthly", label: "Every Month" },
   ];
 
+  const error = taskError?.message ?? null;
+
   useEffect(() => {
-    if (!id) return;
+    if (task && !initialized) {
+      setTitle(task.name);
+      setDescription(task.description || "");
+      setAlarmFrequency(task.alarm_interval);
+      setFrequency(task.frecuency);
 
-    const fetchTask = async () => {
-      setLoading(true);
-      setError(null);
-      try {
-        const task = await getTask(id);
-        setTitle(task.name);
-        setDescription(task.description || "");
-        setAlarmFrequency(task.alarm_interval);
-        setFrequency(task.frecuency);
-
-        // Parse alarm_time
-        if (task.alarm_time) {
-          const alarmDate = new Date(task.alarm_time);
-          const year = alarmDate.getFullYear();
-          const month = String(alarmDate.getMonth() + 1).padStart(2, "0");
-          const day = String(alarmDate.getDate()).padStart(2, "0");
-          setSelectedDate(`${year}-${month}-${day}`);
-          setSelectedTime(alarmDate);
-        }
-      } catch (err) {
-        const message =
-          err instanceof Error ? err.message : "Unable to load task.";
-        setError(message);
-      } finally {
-        setLoading(false);
+      if (task.alarm_time) {
+        const alarmDate = new Date(task.alarm_time);
+        const year = alarmDate.getFullYear();
+        const month = String(alarmDate.getMonth() + 1).padStart(2, "0");
+        const day = String(alarmDate.getDate()).padStart(2, "0");
+        setSelectedDate(`${year}-${month}-${day}`);
+        setSelectedTime(alarmDate);
       }
-    };
-
-    fetchTask();
-  }, [id]);
+      setInitialized(true);
+    }
+  }, [task, initialized]);
 
   const openAlarmModal = () => setAlarmModalVisible(true);
   const closeAlarmModal = () => setAlarmModalVisible(false);
@@ -218,12 +212,12 @@ export default function TaskDetail() {
       );
       const alarmTimeISO = dateObj.toISOString();
 
-      const updatedTaskData = await updateTask(id, {
+      const updatedTaskData = await updateTask({
         name: trimmedTitle,
         description: trimmedDescription,
         alarm_interval: alarmFrequency!,
         alarm_time: alarmTimeISO,
-        frecuency: frequency,
+        frecuency: frequency as Frequency,
       });
 
       // Update the scheduled notification
@@ -253,7 +247,7 @@ export default function TaskDetail() {
     try {
       // Cancel the notification before deleting the task
       await notificationService.cancelNotification(id);
-      await deleteTask(id);
+      await deleteTask();
       setDeleteDialogOpen(false);
       router.replace("/");
     } catch (err) {

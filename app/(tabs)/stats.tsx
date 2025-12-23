@@ -1,7 +1,9 @@
 import { Text } from "@/components/ui/text";
 import { useColors } from "@/lib/colors";
+import { useStats } from "@/hooks/useStats";
+import { Frequency } from "@/domain/models/Task";
 import Feather from "@expo/vector-icons/Feather";
-import { ScrollView, View } from "react-native";
+import { ActivityIndicator, ScrollView, View } from "react-native";
 
 type StatCardProps = {
   icon: keyof typeof Feather.glyphMap;
@@ -42,7 +44,7 @@ function FrequencyBar({ label, percentage, count, color }: FrequencyBarProps) {
           {label}
         </Text>
         <Text className="text-sm text-black/60 dark:text-white/60">
-          {count} tasks
+          {count} task{count !== 1 ? "s" : ""}
         </Text>
       </View>
       <View className="h-2 bg-black/5 dark:bg-white/10 rounded-full overflow-hidden">
@@ -55,8 +57,27 @@ function FrequencyBar({ label, percentage, count, color }: FrequencyBarProps) {
   );
 }
 
+const FREQUENCY_CONFIG: Record<
+  Frequency,
+  { label: string; colorKey: keyof ReturnType<typeof useColors>["chart"] }
+> = {
+  daily: { label: "Daily", colorKey: "green" },
+  weekly: { label: "Weekly", colorKey: "blue" },
+  monthly: { label: "Monthly", colorKey: "purple" },
+  single: { label: "Once", colorKey: "amber" },
+};
+
 export default function StatsScreen() {
   const colors = useColors();
+  const { stats, insights, loading } = useStats();
+
+  if (loading) {
+    return (
+      <View className="flex-1 bg-white dark:bg-black items-center justify-center">
+        <ActivityIndicator size="large" color={colors.chart.blue} />
+      </View>
+    );
+  }
 
   return (
     <View className="flex-1 bg-white dark:bg-black">
@@ -74,13 +95,13 @@ export default function StatsScreen() {
           <StatCard
             icon="list"
             label="Total Tasks"
-            value={12}
+            value={stats.total}
             color={colors.chart.blue}
           />
           <StatCard
             icon="check-circle"
             label="Completed"
-            value={8}
+            value={stats.completed}
             color={colors.chart.green}
           />
         </View>
@@ -89,13 +110,13 @@ export default function StatsScreen() {
           <StatCard
             icon="clock"
             label="Pending"
-            value={4}
+            value={stats.pending}
             color={colors.chart.amber}
           />
           <StatCard
             icon="trending-up"
             label="Completion Rate"
-            value="67%"
+            value={`${stats.completionRate}%`}
             color={colors.chart.purple}
           />
         </View>
@@ -106,30 +127,15 @@ export default function StatsScreen() {
             Tasks by Frequency
           </Text>
 
-          <FrequencyBar
-            label="Daily"
-            percentage={40}
-            count={5}
-            color={colors.chart.green}
-          />
-          <FrequencyBar
-            label="Weekly"
-            percentage={25}
-            count={3}
-            color={colors.chart.blue}
-          />
-          <FrequencyBar
-            label="Monthly"
-            percentage={17}
-            count={2}
-            color={colors.chart.purple}
-          />
-          <FrequencyBar
-            label="Once"
-            percentage={17}
-            count={2}
-            color={colors.chart.amber}
-          />
+          {(Object.keys(FREQUENCY_CONFIG) as Frequency[]).map((freq) => (
+            <FrequencyBar
+              key={freq}
+              label={FREQUENCY_CONFIG[freq].label}
+              percentage={stats.byFrequency[freq].percentage}
+              count={stats.byFrequency[freq].count}
+              color={colors.chart[FREQUENCY_CONFIG[freq].colorKey]}
+            />
+          ))}
         </View>
 
         {/* Quick Insights */}
@@ -138,24 +144,23 @@ export default function StatsScreen() {
             Quick Insights
           </Text>
           <View className="gap-2">
-            <View className="flex-row items-center gap-2">
-              <Feather name="award" size={16} color={colors.chart.green} />
-              <Text className="text-sm text-black/80 dark:text-white/80">
-                You've completed 8 tasks!
-              </Text>
-            </View>
-            <View className="flex-row items-center gap-2">
-              <Feather name="target" size={16} color={colors.chart.amber} />
-              <Text className="text-sm text-black/80 dark:text-white/80">
-                4 tasks waiting for you
-              </Text>
-            </View>
-            <View className="flex-row items-center gap-2">
-              <Feather name="star" size={16} color={colors.chart.purple} />
-              <Text className="text-sm text-black/80 dark:text-white/80">
-                Great progress! Over half your tasks are done
-              </Text>
-            </View>
+            {insights.map((insight, index) => {
+              const iconColor =
+                insight.type === "success"
+                  ? colors.chart.green
+                  : insight.type === "encouragement"
+                    ? colors.chart.amber
+                    : colors.chart.purple;
+
+              return (
+                <View key={index} className="flex-row items-center gap-2">
+                  <Feather name={insight.icon} size={16} color={iconColor} />
+                  <Text className="text-sm text-black/80 dark:text-white/80 flex-1">
+                    {insight.message}
+                  </Text>
+                </View>
+              );
+            })}
           </View>
         </View>
       </ScrollView>

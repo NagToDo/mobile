@@ -1,4 +1,4 @@
-import { Task } from "@/api/tasks";
+import { Task } from "@/domain/models/Task";
 import * as Notifications from "expo-notifications";
 import { Platform } from "react-native";
 import { NotificationService } from "./types";

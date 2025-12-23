@@ -1,4 +1,4 @@
-import { Task } from "@/api/tasks";
+import { Task } from "@/domain/models/Task";
 
 /**
  * Abstract notification service interface.

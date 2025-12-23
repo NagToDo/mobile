@@ -9,6 +9,8 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Text } from "@/components/ui/text";
+import { useTasks } from "@/hooks/useTasks";
+import { Frequency } from "@/domain/models/Task";
 import { notificationService } from "@/services/notification";
 import { useState } from "react";
 import {
@@ -20,8 +22,6 @@ import {
   useWindowDimensions,
   View,
 } from "react-native";
-// import { cn } from "@/lib/utils";
-import { createTask } from "@/api/tasks";
 import Feather from "@expo/vector-icons/Feather";
 import { PortalHost } from "@rn-primitives/portal";
 import { useRouter } from "expo-router";
@@ -158,6 +158,7 @@ export default function CreateTask() {
   const { width: windowWidth } = useWindowDimensions();
   const iconColor = colorScheme === "dark" ? "#fff" : "#000";
   const router = useRouter();
+  const { createTask } = useTasks();
 
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
@@ -296,7 +297,7 @@ export default function CreateTask() {
         description: trimmedDescription,
         alarm_interval: alarmFrequency!,
         alarm_time: alarmTimeISO,
-        frecuency: frequency,
+        frecuency: frequency as Frequency,
       });
 
       // Schedule notification for the new task
