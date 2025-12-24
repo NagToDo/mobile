@@ -4,6 +4,7 @@ export interface ITaskRepository {
   // Read operations
   getAll(userId: string): Promise<Task[]>;
   getById(id: string): Promise<Task | null>;
+  getByName(name: string, userId: string): Promise<Task | null>;
   getByStatus(userId: string, status: SyncStatus): Promise<Task[]>;
   getPending(userId: string): Promise<Task[]>;
 

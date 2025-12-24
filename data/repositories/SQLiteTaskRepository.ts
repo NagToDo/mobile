@@ -61,6 +61,15 @@ export class SQLiteTaskRepository implements ITaskRepository {
     return row ? rowToTask(row) : null;
   }
 
+  async getByName(name: string, userId: string): Promise<Task | null> {
+    const normalizedName = name.toLowerCase().trim();
+    const row = await this.db.getFirstAsync<TaskRow>(
+      "SELECT * FROM tasks WHERE LOWER(TRIM(name)) = ? AND user_id = ? AND deleted_at IS NULL",
+      [normalizedName, userId],
+    );
+    return row ? rowToTask(row) : null;
+  }
+
   async getByStatus(userId: string, status: SyncStatus): Promise<Task[]> {
     const rows = await this.db.getAllAsync<TaskRow>(
       "SELECT * FROM tasks WHERE user_id = ? AND sync_status = ? AND deleted_at IS NULL ORDER BY created_at DESC",

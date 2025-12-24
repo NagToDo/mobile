@@ -10,6 +10,7 @@ import { TaskServiceConfig } from "../config/sync.config";
 import { TransactionError } from "./errors/TransactionError";
 import { NotFoundError } from "./errors/NotFoundError";
 import { ConflictError } from "./errors/ConflictError";
+import { DuplicateTaskError } from "./errors/DuplicateTaskError";
 
 export class TaskService {
   constructor(
@@ -28,6 +29,17 @@ export class TaskService {
   }
 
   async createTask(taskData: TaskCreate): Promise<Task> {
+    const existingTask = await this.localRepo.getByName(
+      taskData.name,
+      taskData.user_id,
+    );
+    if (existingTask) {
+      throw new DuplicateTaskError(
+        `A task with the name "${taskData.name}" already exists`,
+        taskData.name,
+      );
+    }
+
     const localTask = await this.localRepo.create(taskData);
 
     if (this.config.enableSync) {

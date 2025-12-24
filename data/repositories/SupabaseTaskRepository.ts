@@ -42,6 +42,27 @@ export class SupabaseTaskRepository implements ITaskRepository {
     return data ? this.mapToTask(data) : null;
   }
 
+  async getByName(name: string, userId: string): Promise<Task | null> {
+    const normalizedName = name.trim();
+    const { data, error } = await this.client
+      .from("tasks")
+      .select("*")
+      .ilike("name", normalizedName)
+      .eq("user_id", userId)
+      .is("deleted_at", null)
+      .limit(1)
+      .single();
+
+    if (error) {
+      if (error.code === "PGRST116") {
+        return null;
+      }
+      throw new Error(`Supabase error: ${error.message}`);
+    }
+
+    return data ? this.mapToTask(data) : null;
+  }
+
   async getByStatus(userId: string, status: SyncStatus): Promise<Task[]> {
     const { data, error } = await this.client
       .from("tasks")

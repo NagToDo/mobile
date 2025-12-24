@@ -149,9 +149,15 @@ export class SyncService {
   private async mergeChanges(local: Task[], remote: Task[]): Promise<void> {
     const localMap = new Map(local.map((t) => [t.id, t]));
     const remoteMap = new Map(remote.map((t) => [t.id, t]));
+    const localNameSet = new Set(local.map((t) => t.name.toLowerCase().trim()));
 
     for (const [id, remoteTask] of remoteMap) {
       if (!localMap.has(id)) {
+        const normalizedRemoteName = remoteTask.name.toLowerCase().trim();
+        if (localNameSet.has(normalizedRemoteName)) {
+          continue;
+        }
+
         const taskCreate: TaskCreate = {
           name: remoteTask.name,
           description: remoteTask.description,
@@ -162,7 +168,7 @@ export class SyncService {
           user_id: remoteTask.user_id,
         };
         await this.localRepo.create(taskCreate);
-        await this.localRepo.markSynced(id, remoteTask.version);
+        localNameSet.add(normalizedRemoteName);
       }
     }
 
