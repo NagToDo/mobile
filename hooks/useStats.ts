@@ -12,10 +12,11 @@ interface UseStatsReturn {
   insights: Insight[];
   loading: boolean;
   error: Error | null;
+  refresh: () => Promise<void>;
 }
 
 export function useStats(): UseStatsReturn {
-  const { tasks, loading, error } = useTasks();
+  const { tasks, loading, error, refresh } = useTasks();
 
   const stats = useMemo(() => calculateStats(tasks), [tasks]);
   const insights = useMemo(() => generateInsights(stats), [stats]);
@@ -25,5 +26,6 @@ export function useStats(): UseStatsReturn {
     insights,
     loading,
     error,
+    refresh,
   };
 }

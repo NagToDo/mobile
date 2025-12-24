@@ -3,6 +3,8 @@ import { useColors } from "@/lib/colors";
 import { useStats } from "@/hooks/useStats";
 import { Frequency } from "@/domain/models/Task";
 import Feather from "@expo/vector-icons/Feather";
+import { useFocusEffect } from "expo-router";
+import { useCallback } from "react";
 import { ActivityIndicator, ScrollView, View } from "react-native";
 
 type StatCardProps = {
@@ -69,7 +71,13 @@ const FREQUENCY_CONFIG: Record<
 
 export default function StatsScreen() {
   const colors = useColors();
-  const { stats, insights, loading } = useStats();
+  const { stats, insights, loading, refresh } = useStats();
+
+  useFocusEffect(
+    useCallback(() => {
+      refresh();
+    }, [refresh]),
+  );
 
   if (loading) {
     return (

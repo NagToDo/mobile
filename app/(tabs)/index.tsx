@@ -14,6 +14,7 @@ import { Redirect, useRouter } from "expo-router";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   Alert,
+  Animated,
   RefreshControl,
   ScrollView,
   TextInput,
@@ -31,8 +32,32 @@ export default function Index() {
   const [syncing, setSyncing] = useState(false);
   const [syncCooldown, setSyncCooldown] = useState(0);
   const cooldownRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const hasInitialSynced = useRef(false);
+  const syncAnimOpacity = useRef(new Animated.Value(0.4)).current;
 
   const SYNC_COOLDOWN_SECONDS = 5;
+
+  // Sync shimmer animation
+  useEffect(() => {
+    if (syncing) {
+      const animation = Animated.loop(
+        Animated.sequence([
+          Animated.timing(syncAnimOpacity, {
+            toValue: 1,
+            duration: 600,
+            useNativeDriver: true,
+          }),
+          Animated.timing(syncAnimOpacity, {
+            toValue: 0.4,
+            duration: 600,
+            useNativeDriver: true,
+          }),
+        ]),
+      );
+      animation.start();
+      return () => animation.stop();
+    }
+  }, [syncing, syncAnimOpacity]);
 
   const { isReady: dbReady } = useDatabase();
   const {
@@ -95,6 +120,39 @@ export default function Index() {
     };
   }, [session, dbReady, startSync, stopSync]);
 
+  const startCooldown = useCallback(() => {
+    setSyncCooldown(SYNC_COOLDOWN_SECONDS);
+    if (cooldownRef.current) {
+      clearInterval(cooldownRef.current);
+    }
+    cooldownRef.current = setInterval(() => {
+      setSyncCooldown((prev) => {
+        if (prev <= 1) {
+          if (cooldownRef.current) {
+            clearInterval(cooldownRef.current);
+            cooldownRef.current = null;
+          }
+          return 0;
+        }
+        return prev - 1;
+      });
+    }, 1000);
+  }, []);
+
+  // Initial sync on first mount
+  useEffect(() => {
+    if (session && dbReady && !hasInitialSynced.current) {
+      hasInitialSynced.current = true;
+      setSyncing(true);
+      forceSync()
+        .then(() => fetchTasks())
+        .finally(() => {
+          setSyncing(false);
+          startCooldown();
+        });
+    }
+  }, [session, dbReady, forceSync, fetchTasks, startCooldown]);
+
   // Cleanup cooldown interval on unmount
   useEffect(() => {
     return () => {
@@ -120,25 +178,6 @@ export default function Index() {
     await fetchTasks();
     setRefreshing(false);
   }, [fetchTasks, forceSync]);
-
-  const startCooldown = useCallback(() => {
-    setSyncCooldown(SYNC_COOLDOWN_SECONDS);
-    if (cooldownRef.current) {
-      clearInterval(cooldownRef.current);
-    }
-    cooldownRef.current = setInterval(() => {
-      setSyncCooldown((prev) => {
-        if (prev <= 1) {
-          if (cooldownRef.current) {
-            clearInterval(cooldownRef.current);
-            cooldownRef.current = null;
-          }
-          return 0;
-        }
-        return prev - 1;
-      });
-    }, 1000);
-  }, []);
 
   const handleSync = useCallback(async () => {
     if (syncing || syncCooldown > 0) return;
@@ -167,60 +206,77 @@ export default function Index() {
 
   return (
     <View className="flex-1 p-6 gap-4 bg-white dark:bg-black">
-      <View className="flex-row items-center justify-between mt-2">
-        <Text className="text-2xl font-bold dark:text-white">My Tasks</Text>
-        <View className="flex-row items-center gap-3">
-          <Button
-            variant="outline"
-            size="icon"
-            className="h-8 w-8 rounded-full border border-black/15 dark:border-white/20 bg-white dark:bg-neutral-900"
-            onPress={handleSync}
-            disabled={syncing || syncCooldown > 0}
-          >
-            {syncing ? (
-              <Text className="text-xs font-bold" style={{ color: icon.muted }}>
-                ...
-              </Text>
-            ) : syncCooldown > 0 ? (
-              <Text
-                className="text-xs font-medium"
-                style={{ color: icon.muted }}
-              >
-                {syncCooldown}
-              </Text>
-            ) : (
-              <Feather name="refresh-cw" size={16} color={icon.default} />
-            )}
-          </Button>
-          <Button
-            variant="outline"
-            size="icon"
-            className="h-8 w-8 rounded-full border border-black/15 dark:border-white/20 bg-white dark:bg-neutral-900"
-            onPress={handleLogout}
-          >
-            <Feather name="log-out" size={16} color={icon.default} />
-          </Button>
-          <Button
-            variant="outline"
-            size="icon"
-            className="h-8 w-8 rounded-full border border-black/15 dark:border-white/20 bg-white dark:bg-neutral-900"
-            onPress={toggleColorScheme}
-          >
-            <Feather
-              name={colorScheme === "dark" ? "sun" : "moon"}
-              size={16}
-              color={icon.default}
-            />
-          </Button>
-          <Button
-            variant="outline"
-            size="icon"
-            className="h-8 w-8 rounded-full border border-black/15 dark:border-white/20 bg-white dark:bg-neutral-900"
-            onPress={() => router.push("/user")}
-          >
-            <Feather name="user" size={16} color={icon.default} />
-          </Button>
+      <View className="mt-2">
+        <View className="flex-row items-center justify-between">
+          <Text className="text-2xl font-bold dark:text-white">My Tasks</Text>
+          <View className="flex-row items-center gap-3">
+            <Button
+              variant="outline"
+              size="icon"
+              className="h-8 w-8 rounded-full border border-black/15 dark:border-white/20 bg-white dark:bg-neutral-900"
+              onPress={handleSync}
+              disabled={syncing || syncCooldown > 0}
+            >
+              {syncing ? (
+                <Text
+                  className="text-xs font-bold"
+                  style={{ color: icon.muted }}
+                >
+                  ...
+                </Text>
+              ) : syncCooldown > 0 ? (
+                <Text
+                  className="text-xs font-medium"
+                  style={{ color: icon.muted }}
+                >
+                  {syncCooldown}
+                </Text>
+              ) : (
+                <Feather name="refresh-cw" size={16} color={icon.default} />
+              )}
+            </Button>
+            <Button
+              variant="outline"
+              size="icon"
+              className="h-8 w-8 rounded-full border border-black/15 dark:border-white/20 bg-white dark:bg-neutral-900"
+              onPress={handleLogout}
+            >
+              <Feather name="log-out" size={16} color={icon.default} />
+            </Button>
+            <Button
+              variant="outline"
+              size="icon"
+              className="h-8 w-8 rounded-full border border-black/15 dark:border-white/20 bg-white dark:bg-neutral-900"
+              onPress={toggleColorScheme}
+            >
+              <Feather
+                name={colorScheme === "dark" ? "sun" : "moon"}
+                size={16}
+                color={icon.default}
+              />
+            </Button>
+            <Button
+              variant="outline"
+              size="icon"
+              className="h-8 w-8 rounded-full border border-black/15 dark:border-white/20 bg-white dark:bg-neutral-900"
+              onPress={() => router.push("/user")}
+            >
+              <Feather name="user" size={16} color={icon.default} />
+            </Button>
+          </View>
         </View>
+
+        {syncing && (
+          <Animated.View
+            style={{ opacity: syncAnimOpacity }}
+            className="flex-row items-center justify-end gap-2 mt-2"
+          >
+            <Feather name="cloud" size={14} color={icon.muted} />
+            <Text className="text-sm text-black/50 dark:text-white/50">
+              Syncing with cloud...
+            </Text>
+          </Animated.View>
+        )}
       </View>
 
       <View className="flex-row items-center gap-3">
